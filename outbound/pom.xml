@@ -16,6 +16,7 @@
     <modules>
         <module>outbound-port</module>
         <module>adapter-persistence</module>
+        <module>adapter-notification</module>
     </modules>
 
     <build>
