@@ -14,7 +14,7 @@
 
     <build>
         <plugins>
-            <!-- The domain is the centre: it must not depend on any other module of this project. -->
+            <!-- The domain is the centre: no other module of this project, and no Spring. -->
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -30,6 +30,7 @@
                                         <exclude>com.wixia</exclude>
                                         <exclude>com.wixia.inbound</exclude>
                                         <exclude>com.wixia.outbound</exclude>
+                                        <exclude>org.springframework*</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>

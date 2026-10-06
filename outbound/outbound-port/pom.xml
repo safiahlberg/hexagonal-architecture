@@ -22,7 +22,7 @@
 
     <build>
         <plugins>
-            <!-- A port is the application's contract: it must not depend on any adapter on its own side. -->
+            <!-- A port is the application's contract: no adapter on its own side, and no Spring. -->
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -36,6 +36,7 @@
                                 <bannedDependencies>
                                     <excludes>
                                         <exclude>com.wixia.outbound</exclude>
+                                        <exclude>org.springframework*</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>

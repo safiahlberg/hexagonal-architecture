@@ -32,7 +32,7 @@
 
     <build>
         <plugins>
-            <!-- The core may see both sides' ports, but never an adapter. -->
+            <!-- The core may see both sides' ports, but never an adapter, and stays free of Spring. -->
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -47,6 +47,7 @@
                                     <excludes>
                                         <exclude>com.wixia.inbound</exclude>
                                         <exclude>com.wixia.outbound</exclude>
+                                        <exclude>org.springframework*</exclude>
                                     </excludes>
                                     <includes>
                                         <include>com.wixia.inbound:inbound-port</include>

@@ -21,6 +21,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>27</maven.compiler.release>
+    <spring-boot.version>4.1.1</spring-boot.version>
+    <!-- Kept in line with the JUnit version that Spring Boot is built against. -->
+    <junit.version>6.0.3</junit.version>
   </properties>
 
   <dependencyManagement>
@@ -28,7 +31,15 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.11.0</version>
+        <version>${junit.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <!-- Versions only: which modules may actually use Spring is decided by the enforcer rules. -->
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -69,6 +80,11 @@
         <plugin>
           <artifactId>maven-enforcer-plugin</artifactId>
           <version>3.6.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <version>${spring-boot.version}</version>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
