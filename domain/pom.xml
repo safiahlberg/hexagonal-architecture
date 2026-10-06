@@ -11,6 +11,32 @@
     <packaging>jar</packaging>
 
     <name>domain</name>
-    <url>http://maven.apache.org</url>
 
+    <build>
+        <plugins>
+            <!-- The domain is the centre: it must not depend on any other module of this project. -->
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>domain-isolation</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>com.wixia</exclude>
+                                        <exclude>com.wixia.inbound</exclude>
+                                        <exclude>com.wixia.outbound</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

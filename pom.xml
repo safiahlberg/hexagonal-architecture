@@ -12,9 +12,10 @@
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
   <modules>
-    <module>framework</module>
-    <module>application</module>
     <module>domain</module>
+    <module>inbound</module>
+    <module>outbound</module>
+    <module>core</module>
   </modules>
 
   <properties>
@@ -64,6 +65,10 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.13.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>3.6.2</version>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
