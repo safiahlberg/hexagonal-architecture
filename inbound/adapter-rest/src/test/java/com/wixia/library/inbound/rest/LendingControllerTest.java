@@ -104,9 +104,33 @@ class LendingControllerTest {
     }
 
     @Test
-    void malformedIdIsBadRequest() throws Exception {
+    void malformedPathIdIsBadRequest() throws Exception {
         mvc.perform(post("/copies/{id}/return", "not-a-uuid"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Invalid value for copyId, expected UUID"));
+    }
+
+    @Test
+    void malformedBodyIdIsBadRequest() throws Exception {
+        mvc.perform(post("/loans").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"memberId\":\"oops\",\"copyId\":\"%s\"}".formatted(loan.copyId().value())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Invalid value for memberId, expected UUID"));
+    }
+
+    @Test
+    void bodyIdOfWrongJsonTypeIsBadRequest() throws Exception {
+        mvc.perform(post("/loans").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"memberId\":\"%s\",\"copyId\":[1]}".formatted(loan.memberId().value())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Invalid value for copyId, expected UUID"));
+    }
+
+    @Test
+    void brokenJsonIsBadRequest() throws Exception {
+        mvc.perform(post("/loans").contentType(MediaType.APPLICATION_JSON).content("{\"memberId\":"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Request body is missing or is not valid JSON"));
     }
 
     private String borrowJson() {

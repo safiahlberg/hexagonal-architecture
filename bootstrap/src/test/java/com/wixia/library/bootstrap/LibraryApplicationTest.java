@@ -59,6 +59,14 @@ class LibraryApplicationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void malformedIdIsExplainedEvenWithBootProblemDetailsEnabled() throws Exception {
+        mvc.perform(post("/loans").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"memberId\":\"oops\",\"copyId\":\"%s\"}".formatted(DUNE)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Invalid value for memberId, expected UUID"));
+    }
+
     private ResultActions borrow(UUID member, UUID copy) throws Exception {
         return mvc.perform(post("/loans").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"memberId\":\"%s\",\"copyId\":\"%s\"}".formatted(member, copy)));
