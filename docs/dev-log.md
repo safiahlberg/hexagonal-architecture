@@ -36,3 +36,19 @@
 - Added `outbound/adapter-notification`. It wasn't in the original layout, but it shows a second adapter on one side, and it picked up the outbound enforcer rules without any configuration of its own.
 - Not done: the REST adapter (`inbound/adapter-rest` has no sources yet) and a composition root that wires services to adapters, so there's nothing runnable yet.
 - Follow-up the same day: removed all `module-info.java` files again, to keep the door open for running as a Spring Boot service. Spring Boot runs the fat jar on the classpath, where `module-info` is ignored. Spring, Jackson and Hibernate would each need `opens` lines, and the enforcer rules already guard module dependencies. The one-root-package-per-module layout stays: it avoids split packages, gives Spring a clean `com.wixia.library` base to scan, and keeps JPMS possible later. If internal packages need hiding, use ArchUnit rather than JPMS.
+
+## 2026-10-06 — rest-adapter-spring-boot
+
+**Goal:** Expose the lending use cases over REST with Spring Boot and make the service runnable, without letting Spring into `domain`, the ports or `core`.
+
+**Steps**
+1. The root POM imports `spring-boot-dependencies` 4.1.1 (versions only) and moves `junit-bom` to 6.0.3, the version Boot is built against. The domain, port and core enforcer rules now also ban `org.springframework*`. Verified in a scratch copy with `spring-context`, `spring-boot` and `spring-data-commons`.
+2. `adapter-rest` (`com.wixia.library.inbound.rest`): `LendingController` serves `POST /loans`, `POST /loans/{loanId}/renewal` and `POST /copies/{copyId}/return`. `LendingExceptionHandler` maps `NotFoundException` to 404 and `LendingRefusedException` to 409 with a `reason` property, as RFC 9457 problem details. 6 `@WebMvcTest` tests with mocked use cases. The root POM now compiles with `-parameters`, which Spring needs to bind `@PathVariable` by name.
+3. New top-level `bootstrap` module (`com.wixia:bootstrap`), the composition root. `LendingConfiguration` wires the services to the adapters with plain `@Bean` methods. `SampleData` adds 2 members and 3 copies with fixed ids. `spring-boot-maven-plugin` builds the runnable jar. A `@SpringBootTest` runs a full borrow → conflict → renew → return → re-borrow round trip. Also checked by running the jar and calling it with curl.
+
+**Decisions / deviations**
+- The composition root has to be its own module. `adapter-rest` may not depend on `core` or the outbound adapters, so it can't do the wiring itself. `bootstrap` has no enforcer rule, being the one module that is meant to see everything.
+- Component scanning covers only `bootstrap` and `inbound.rest`. `core` and the outbound adapters have no Spring annotations and are wired explicitly, so replacing an adapter means changing one `@Bean`.
+- Both `-parameters` and the explicit `repackage` execution would normally come from `spring-boot-starter-parent`. That parent isn't used, since the project has its own root POM. Its BOM is imported instead.
+- Rough edge: a borrow request missing an id gets a 400 with the generic detail "Failed to read request". The message from `BorrowRequest` is lost when Jackson wraps the exception.
+- Running: `mvn package`, then `java -jar bootstrap/target/bootstrap-1.0-SNAPSHOT.jar`. The sample ids are logged at startup.

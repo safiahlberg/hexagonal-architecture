@@ -16,6 +16,7 @@
     <module>inbound</module>
     <module>outbound</module>
     <module>core</module>
+    <module>bootstrap</module>
   </modules>
 
   <properties>
