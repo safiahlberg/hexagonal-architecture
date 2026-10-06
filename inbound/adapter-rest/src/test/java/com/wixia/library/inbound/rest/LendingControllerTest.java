@@ -63,7 +63,15 @@ class LendingControllerTest {
     void borrowingWithoutCopyIsBadRequest() throws Exception {
         mvc.perform(post("/loans").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"memberId\":\"%s\"}".formatted(loan.memberId().value())))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Missing required fields: copyId"));
+    }
+
+    @Test
+    void borrowingWithEmptyBodyNamesBothFields() throws Exception {
+        mvc.perform(post("/loans").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Missing required fields: memberId, copyId"));
     }
 
     @Test

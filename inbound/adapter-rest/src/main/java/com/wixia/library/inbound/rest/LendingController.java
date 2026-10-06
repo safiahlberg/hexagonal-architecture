@@ -9,6 +9,7 @@ import com.wixia.library.inbound.port.RenewLoanUseCase;
 import com.wixia.library.inbound.port.ReturnBookUseCase;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,10 @@ class LendingController {
 
     @PostMapping("/loans")
     ResponseEntity<LoanResponse> borrow(@RequestBody BorrowRequest request) {
+        List<String> missing = request.missingFields();
+        if (!missing.isEmpty()) {
+            throw new InvalidRequestException("Missing required fields: " + String.join(", ", missing));
+        }
         Loan loan = borrowBook.borrow(new MemberId(request.memberId()), new BookCopyId(request.copyId()));
         return ResponseEntity.created(URI.create("/loans/" + loan.id().value())).body(LoanResponse.from(loan));
     }
