@@ -4,8 +4,8 @@ import com.wixia.library.domain.catalog.BookCopy;
 import com.wixia.library.domain.catalog.BookCopyId;
 import com.wixia.library.domain.member.Member;
 import com.wixia.library.domain.member.MemberId;
-import com.wixia.library.outbound.persistence.InMemoryBookCopyRepository;
-import com.wixia.library.outbound.persistence.InMemoryMemberRepository;
+import com.wixia.library.outbound.persistence.JpaBookCopyRepository;
+import com.wixia.library.outbound.persistence.JpaMemberRepository;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,10 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Members and copies to try the API with. The use cases cannot create either, and the in-memory store starts empty.
- * The ids are fixed so requests can be written in advance.
+ * Members and copies to try the API with, since the use cases cannot create either. They are written at every start,
+ * replacing any rows with the same ids. The ids are fixed so requests can be written in advance.
  */
 @Component
 class SampleData implements ApplicationRunner {
@@ -34,18 +35,22 @@ class SampleData implements ApplicationRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(SampleData.class);
 
-    private final InMemoryMemberRepository members;
-    private final InMemoryBookCopyRepository copies;
+    private final JpaMemberRepository members;
+    private final JpaBookCopyRepository copies;
+    private final TransactionTemplate transaction;
 
-    SampleData(InMemoryMemberRepository members, InMemoryBookCopyRepository copies) {
+    SampleData(JpaMemberRepository members, JpaBookCopyRepository copies, TransactionTemplate transaction) {
         this.members = members;
         this.copies = copies;
+        this.transaction = transaction;
     }
 
     @Override
     public void run(ApplicationArguments args) {
-        MEMBERS.forEach(members::add);
-        COPIES.forEach(copies::add);
+        transaction.executeWithoutResult(status -> {
+            MEMBERS.forEach(members::add);
+            COPIES.forEach(copies::add);
+        });
         MEMBERS.forEach(member -> LOG.info("Sample member {}: {}", member.name(), member.id().value()));
         COPIES.forEach(copy -> LOG.info("Sample copy \"{}\": {}", copy.title(), copy.id().value()));
     }
