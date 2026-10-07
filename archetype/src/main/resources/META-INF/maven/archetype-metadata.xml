@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Module dirs and artifactIds are fixed; only the groupId (inbound and outbound get .inbound / .outbound appended),
+     the root artifactId, the version and the package are parameters. sync.sh fails if a module of the sample is missing here. -->
+<archetype-descriptor xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.2.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.2.0 https://maven.apache.org/xsd/archetype-descriptor-1.2.0.xsd"
+    name="hexagonal-architecture">
+
+  <requiredProperties>
+    <!-- Not meant to be set: the archetype jar can't hold a .gitignore, so it holds __gitignore__ and this restores the name. -->
+    <requiredProperty key="gitignore">
+      <defaultValue>.gitignore</defaultValue>
+    </requiredProperty>
+  </requiredProperties>
+
+  <fileSets>
+    <fileSet filtered="true" encoding="UTF-8">
+      <includes>
+        <include>README.md</include>
+        <include>CLAUDE.md</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <includes>
+        <include>__gitignore__</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+
+  <modules>
+    <module id="domain" dir="domain" name="domain">
+      <fileSets>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/test/java</directory>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module id="inbound" dir="inbound" name="inbound">
+      <modules>
+        <module id="inbound-port" dir="inbound-port" name="inbound-port">
+          <fileSets>
+            <fileSet filtered="true" packaged="true" encoding="UTF-8">
+              <directory>src/main/java</directory>
+            </fileSet>
+          </fileSets>
+        </module>
+        <module id="adapter-rest" dir="adapter-rest" name="adapter-rest">
+          <fileSets>
+            <fileSet filtered="true" packaged="true" encoding="UTF-8">
+              <directory>src/main/java</directory>
+            </fileSet>
+            <fileSet filtered="true" packaged="true" encoding="UTF-8">
+              <directory>src/test/java</directory>
+            </fileSet>
+          </fileSets>
+        </module>
+      </modules>
+    </module>
+
+    <module id="outbound" dir="outbound" name="outbound">
+      <modules>
+        <module id="outbound-port" dir="outbound-port" name="outbound-port">
+          <fileSets>
+            <fileSet filtered="true" packaged="true" encoding="UTF-8">
+              <directory>src/main/java</directory>
+            </fileSet>
+          </fileSets>
+        </module>
+        <module id="adapter-persistence" dir="adapter-persistence" name="adapter-persistence">
+          <fileSets>
+            <fileSet filtered="true" packaged="true" encoding="UTF-8">
+              <directory>src/main/java</directory>
+            </fileSet>
+            <fileSet filtered="true" packaged="true" encoding="UTF-8">
+              <directory>src/test/java</directory>
+            </fileSet>
+          </fileSets>
+        </module>
+        <module id="adapter-notification" dir="adapter-notification" name="adapter-notification">
+          <fileSets>
+            <fileSet filtered="true" packaged="true" encoding="UTF-8">
+              <directory>src/main/java</directory>
+            </fileSet>
+          </fileSets>
+        </module>
+      </modules>
+    </module>
+
+    <module id="core" dir="core" name="core">
+      <fileSets>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/test/java</directory>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module id="bootstrap" dir="bootstrap" name="bootstrap">
+      <fileSets>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+        </fileSet>
+        <fileSet encoding="UTF-8">
+          <directory>src/main/resources</directory>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/test/java</directory>
+        </fileSet>
+      </fileSets>
+    </module>
+  </modules>
+</archetype-descriptor>

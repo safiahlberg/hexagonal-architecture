@@ -1,0 +1,81 @@
+package com.wixia.library.core;
+
+import com.wixia.library.domain.catalog.BookCopy;
+import com.wixia.library.domain.catalog.BookCopyId;
+import com.wixia.library.domain.loan.Loan;
+import com.wixia.library.domain.loan.LoanId;
+import com.wixia.library.domain.member.Member;
+import com.wixia.library.domain.member.MemberId;
+import com.wixia.library.outbound.port.BookCopyRepository;
+import com.wixia.library.outbound.port.LoanRepository;
+import com.wixia.library.outbound.port.MemberNotifier;
+import com.wixia.library.outbound.port.MemberRepository;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * Test double for all outbound ports. The core may not depend on the real adapters, so its tests use this.
+ */
+final class FakeLibrary implements MemberRepository, BookCopyRepository, LoanRepository, MemberNotifier {
+
+    final Map<MemberId, Member> members = new HashMap<>();
+    final Map<BookCopyId, BookCopy> copies = new HashMap<>();
+    final Map<LoanId, Loan> loans = new HashMap<>();
+    final List<String> notifications = new ArrayList<>();
+
+    Member addMember(String name) {
+        Member member = new Member(MemberId.newId(), name, name.toLowerCase() + "@example.com");
+        members.put(member.id(), member);
+        return member;
+    }
+
+    BookCopy addCopy(String title) {
+        BookCopy copy = new BookCopy(BookCopyId.newId(), "978-0-00-000000-0", title);
+        copies.put(copy.id(), copy);
+        return copy;
+    }
+
+    @Override
+    public Optional<Member> findById(MemberId id) {
+        return Optional.ofNullable(members.get(id));
+    }
+
+    @Override
+    public Optional<BookCopy> findById(BookCopyId id) {
+        return Optional.ofNullable(copies.get(id));
+    }
+
+    @Override
+    public Optional<Loan> findById(LoanId id) {
+        return Optional.ofNullable(loans.get(id));
+    }
+
+    @Override
+    public List<Loan> findActiveByMember(MemberId memberId) {
+        return loans.values().stream().filter(Loan::isActive).filter(l -> l.memberId().equals(memberId)).toList();
+    }
+
+    @Override
+    public Optional<Loan> findActiveByCopy(BookCopyId copyId) {
+        return loans.values().stream().filter(Loan::isActive).filter(l -> l.copyId().equals(copyId)).findFirst();
+    }
+
+    @Override
+    public void save(Loan loan) {
+        loans.put(loan.id(), loan);
+    }
+
+    @Override
+    public void loanConfirmed(Member member, BookCopy copy, Loan loan) {
+        notifications.add("confirmed: " + member.name() + " / " + copy.title());
+    }
+
+    @Override
+    public void loanRenewed(Member member, BookCopy copy, Loan loan) {
+        notifications.add("renewed: " + member.name() + " / " + copy.title());
+    }
+}
