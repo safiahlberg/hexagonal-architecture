@@ -60,9 +60,10 @@ class LendingConfiguration {
         return new JpaLoanRepository(entityManager);
     }
 
+    /** Notifies only once the use case's transaction has committed. */
     @Bean
-    LoggingMemberNotifier memberNotifier() {
-        return new LoggingMemberNotifier();
+    MemberNotifier memberNotifier() {
+        return new AfterCommitMemberNotifier(new LoggingMemberNotifier());
     }
 
     @Bean
