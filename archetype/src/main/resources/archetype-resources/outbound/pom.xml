@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>${groupId}</groupId>
+        <artifactId>${rootArtifactId}</artifactId>
+        <version>${version}</version>
+    </parent>
+
+    <groupId>${groupId}.outbound</groupId>
+    <artifactId>outbound</artifactId>
+    <packaging>pom</packaging>
+
+    <name>outbound</name>
+
+    <modules>
+        <module>outbound-port</module>
+        <module>adapter-persistence</module>
+        <module>adapter-notification</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <!-- Inherited by every outbound module: nothing on the outbound side may see the inbound side or the core. -->
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>outbound-isolation</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>${groupId}.inbound</exclude>
+                                        <exclude>${groupId}:core</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
