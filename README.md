@@ -98,3 +98,4 @@ Run `mvn validate` to check the rules on their own. A new adapter placed under `
 
 - [`docs/dev-log.md`](docs/dev-log.md) records how the project was restructured and why the design decisions were made.
 - [`CLAUDE.md`](CLAUDE.md) has more detail on conventions, testing and the Spring setup.
+- [`archetype/`](archetype/README.md) is a Maven archetype that generates a new project from this sample, under your own groupId and package.

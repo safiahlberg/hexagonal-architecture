@@ -54,11 +54,11 @@ for file in $(git ls-files --cached --others --exclude-standard -- ':!archetype'
         *.java)
             filter_text "$file" ;;
         README.md)
-            # docs/ isn't part of the archetype.
-            filter_text "$file" '/docs\/dev-log\.md/d' ;;
+            # docs/ and archetype/ aren't part of the archetype.
+            filter_text "$file" '/docs\/dev-log\.md\|archetype\//d' ;;
         CLAUDE.md)
-            # The History section is the last one and points to docs/, which isn't part of the archetype.
-            filter_text "$file" '/^${symbol_pound}${symbol_pound} History$/,$d' | sed '${/^$/d}' ;;
+            # The Archetype and History sections come last and are about docs/ and archetype/.
+            filter_text "$file" '/^${symbol_pound}${symbol_pound} Archetype$/,$d' | sed '${/^$/d}' ;;
         *)
             cat "$file" ;;
     esac > "$out/$target"
