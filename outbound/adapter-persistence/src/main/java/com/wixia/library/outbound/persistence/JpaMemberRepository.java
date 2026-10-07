@@ -5,6 +5,7 @@ import com.wixia.library.domain.member.MemberId;
 import com.wixia.library.outbound.port.MemberRepository;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -28,5 +29,12 @@ public final class JpaMemberRepository implements MemberRepository {
     @Override
     public Optional<Member> findById(MemberId id) {
         return Optional.ofNullable(entityManager.find(MemberEntity.class, id.value())).map(MemberEntity::toMember);
+    }
+
+    /** Locks the member's row with {@code select ... for no key update}, which PostgreSQL holds until commit. */
+    @Override
+    public Optional<Member> findByIdForUpdate(MemberId id) {
+        return Optional.ofNullable(entityManager.find(MemberEntity.class, id.value(), LockModeType.PESSIMISTIC_WRITE))
+                .map(MemberEntity::toMember);
     }
 }

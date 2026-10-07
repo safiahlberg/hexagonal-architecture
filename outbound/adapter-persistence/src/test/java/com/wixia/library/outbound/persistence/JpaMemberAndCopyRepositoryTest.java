@@ -1,6 +1,7 @@
 package com.wixia.library.outbound.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.wixia.library.domain.catalog.BookCopy;
 import com.wixia.library.domain.catalog.BookCopyId;
@@ -8,7 +9,10 @@ import com.wixia.library.domain.member.Member;
 import com.wixia.library.domain.member.MemberId;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.PersistenceException;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -60,6 +64,26 @@ class JpaMemberAndCopyRepositoryTest {
         entityManager.clear();
 
         assertEquals(Optional.of(renamed), members.findById(id));
+    }
+
+    @Test
+    void memberFoundForUpdateIsLockedUntilTheTransactionEnds() {
+        Member member = new Member(MemberId.newId(), "Ada", "ada@example.com");
+        try (EntityManager setup = TestDatabase.entityManagerFactory().createEntityManager()) {
+            setup.getTransaction().begin();
+            new JpaMemberRepository(setup).add(member);
+            setup.getTransaction().commit();
+        }
+
+        assertEquals(Optional.of(member), members.findByIdForUpdate(member.id()));
+
+        try (EntityManager other = TestDatabase.entityManagerFactory().createEntityManager()) {
+            other.getTransaction().begin();
+            // A timeout of 0 makes the second lock fail at once (NOWAIT) instead of waiting for this test's transaction.
+            assertThrows(PersistenceException.class, () -> other.find(MemberEntity.class, member.id().value(),
+                    LockModeType.PESSIMISTIC_WRITE, Map.of("jakarta.persistence.lock.timeout", 0)));
+            other.getTransaction().rollback();
+        }
     }
 
     @Test

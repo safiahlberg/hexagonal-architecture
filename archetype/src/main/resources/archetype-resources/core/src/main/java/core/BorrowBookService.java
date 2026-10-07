@@ -39,7 +39,8 @@ public final class BorrowBookService implements BorrowBookUseCase {
 
     @Override
     public Loan borrow(MemberId memberId, BookCopyId copyId) {
-        Member member = members.findById(memberId)
+        // Locked so that concurrent borrows by this member are checked against each other's loans.
+        Member member = members.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new NotFoundException("No member with id " + memberId.value()));
         BookCopy copy = copies.findById(copyId)
                 .orElseThrow(() -> new NotFoundException("No copy with id " + copyId.value()));
