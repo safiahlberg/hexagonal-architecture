@@ -10,20 +10,29 @@ ${symbol_pound}${symbol_pound} Requirements
 
 - JDK 27
 - Maven (there is no wrapper; use the system `mvn`)
+- Docker, or Podman with its socket running: the tests start PostgreSQL in a container with Testcontainers, and `compose.yaml` runs it for the app
 
 ${symbol_pound}${symbol_pound} Build and run
 
 ```bash
 mvn clean verify                                    ${symbol_pound} build, check dependency rules, run all tests
+docker compose up -d                                ${symbol_pound} PostgreSQL on localhost:5432
 mvn package -DskipTests
 java -jar bootstrap/target/bootstrap-${version}.jar
 ```
 
-The app listens on port 8080. Data is kept in memory and is lost on restart.
+The app listens on port 8080 and keeps its data in PostgreSQL. Flyway creates the schema at startup. To use another database, set `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` and `SPRING_DATASOURCE_PASSWORD`. `docker compose down -v` deletes the data.
+
+To try the app without setting up a database, run it against a throwaway container that is removed when the app stops:
+
+```bash
+mvn install -DskipTests
+mvn spring-boot:test-run -pl bootstrap
+```
 
 ${symbol_pound}${symbol_pound} Trying the API
 
-The app starts with sample data that has fixed ids, which are also logged at startup:
+At every start the app writes sample data with fixed ids, which are also logged:
 
 | Kind   | Name                      | Id                                     |
 |--------|---------------------------|----------------------------------------|
@@ -78,7 +87,7 @@ inbound/
   adapter-rest/                  Spring MVC controller
 outbound/
   outbound-port/                 repository and notifier interfaces
-  adapter-persistence/           in-memory repositories
+  adapter-persistence/           JPA repositories on PostgreSQL, Flyway migrations
   adapter-notification/          notifier that logs
 bootstrap/                       Spring Boot app, wires everything together
 ```
@@ -94,7 +103,7 @@ Dependencies point inward: adapters depend on ports, `core` depends only on the 
 
 Run `mvn validate` to check the rules on their own. A new adapter placed under `inbound/` or `outbound/` inherits its side's rules automatically.
 
-`core` and the outbound adapters have no Spring annotations; `bootstrap` wires them with explicit `@Bean` methods in `LendingConfiguration`. Replacing an adapter, such as the in-memory store with a database, means writing a new module under `outbound/` and changing one bean.
+`core` and the outbound adapters have no Spring annotations; `bootstrap` wires them with explicit `@Bean` methods in `LendingConfiguration`, and runs each use case in a transaction there. Replacing an adapter means writing a new module under `outbound/` and changing its beans.
 
 ${symbol_pound}${symbol_pound} Further reading
 
