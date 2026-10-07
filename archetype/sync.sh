@@ -54,8 +54,12 @@ for file in $(git ls-files --cached --others --exclude-standard -- ':!archetype'
         *.java)
             filter_text "$file" ;;
         README.md)
-            # docs/ and archetype/ aren't part of the archetype.
-            filter_text "$file" '/docs\/dev-log\.md\|archetype\//d' ;;
+            # docs/ and archetype/ aren't part of the archetype. The section on starting a new project
+            # runs up to Further reading.
+            filter_text "$file" '/docs\/dev-log\.md\|archetype\//d
+                /^${symbol_pound}${symbol_pound} Starting a new project from this sample$/,/^${symbol_pound}${symbol_pound} Further reading$/{
+                    /^${symbol_pound}${symbol_pound} Further reading$/!d
+                }' ;;
         CLAUDE.md)
             # The Archetype and History sections come last and are about docs/ and archetype/.
             filter_text "$file" '/^${symbol_pound}${symbol_pound} Archetype$/,$d' | sed '${/^$/d}' ;;

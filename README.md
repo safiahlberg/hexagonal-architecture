@@ -94,6 +94,38 @@ Run `mvn validate` to check the rules on their own. A new adapter placed under `
 
 `core` and the outbound adapters have no Spring annotations; `bootstrap` wires them with explicit `@Bean` methods in `LendingConfiguration`. Replacing an adapter, such as the in-memory store with a database, means writing a new module under `outbound/` and changing one bean.
 
+## Starting a new project from this sample
+
+[`archetype/`](archetype/README.md) is a Maven archetype that copies this project under your own coordinates and package. Install it into your local repository once:
+
+```bash
+cd archetype
+mvn install
+```
+
+Then generate a project from the directory where it should go:
+
+```bash
+mvn archetype:generate \
+    -DarchetypeGroupId=com.wixia \
+    -DarchetypeArtifactId=hexagonal-architecture-archetype \
+    -DarchetypeVersion=1.0-SNAPSHOT \
+    -DgroupId=org.example.shop \
+    -DartifactId=lending-service \
+    -Dversion=0.1-SNAPSHOT \
+    -Dpackage=org.example.shop.lending \
+    -B
+cd lending-service
+mvn clean verify
+```
+
+- `groupId` is used for the root, `domain`, `core` and `bootstrap`. The inbound and outbound sides get `<groupId>.inbound` and `<groupId>.outbound`, and the enforcer rules are adjusted to match.
+- `artifactId` names the root project and its directory. `package` is the root package and defaults to `groupId`.
+- Module names and class names are the same as here. The lending code is a worked example: replace it with your own domain, keeping the modules and their rules.
+- Without `-B`, Maven asks you to confirm the properties, including one called `gitignore`. Accept its default, `.gitignore`.
+
+The generated project builds and runs as is. If you change this sample, regenerate the archetype first, as described in [`archetype/README.md`](archetype/README.md).
+
 ## Further reading
 
 - [`docs/dev-log.md`](docs/dev-log.md) records how the project was restructured and why the design decisions were made.
