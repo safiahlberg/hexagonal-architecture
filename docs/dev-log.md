@@ -122,3 +122,4 @@
 - The exporter's labels are styled `<div>`s, which GitHub's Mermaid sanitising may strip. The script rewrites them as `<b>`, `<small>` and `<br/>`. It also removes the white frame the exporter draws around each diagram, which hid the arrows in GitHub's dark theme, and makes nested boundaries transparent.
 - The step-by-step borrow is prose, not a dynamic view, for the reason given in `c4-model`: its runtime flow runs against the arrows of the dependency direction.
 - Not verified: how GitHub actually renders the diagrams. Check after the first push.
+- Follow-up the same day: the page's closing section on regenerating the diagrams and browsing the model in Structurizr (with its Podman flags) was removed. Tooling doesn't belong in an architecture description. How to regenerate is in the script's header and in `CLAUDE.md`, and an HTML comment at the top of the page, not shown on GitHub, points editors to the script.

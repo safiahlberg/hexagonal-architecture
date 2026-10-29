@@ -1,8 +1,10 @@
 # Architecture
 
+<!-- The diagrams are generated from workspace.dsl by export-diagrams.sh. Don't edit them by hand. -->
+
 The Library Lending Service lets members borrow, renew and return book copies over a REST API. It is built with the hexagonal (ports and adapters) architecture: the lending rules and use cases are plain Java in the middle, and everything that talks to the outside world (HTTP, PostgreSQL, notifications) is an adapter around them.
 
-This page follows the [C4 model](https://c4model.com), from the system's surroundings down to its components. The diagrams are generated from [`workspace.dsl`](workspace.dsl), a [Structurizr DSL](https://docs.structurizr.com/dsl) model that is the source of truth; see [Keeping this page up to date](#keeping-this-page-up-to-date).
+This page follows the [C4 model](https://c4model.com), from the system's surroundings down to its components. The diagrams come from the model in [`workspace.dsl`](workspace.dsl).
 
 ## 1. System context
 
@@ -214,23 +216,5 @@ java -jar bootstrap/target/bootstrap-1.0-SNAPSHOT.jar
 ```
 
 Flyway creates the schema when the application starts. The tests and `mvn spring-boot:test-run -pl bootstrap` use a throwaway PostgreSQL container from Testcontainers instead, which isn't shown here.
-
-## Keeping this page up to date
-
-[`workspace.dsl`](workspace.dsl) is the source of truth. After changing the model, regenerate the diagrams on this page:
-
-```bash
-docs/architecture/export-diagrams.sh
-```
-
-The script exports each view as Mermaid, using the `structurizr/structurizr` image under Docker or Podman. It writes each diagram between the `<!-- diagram:… -->` markers above, so don't edit the diagrams by hand.
-
-To browse and arrange the views interactively, serve the folder with Structurizr and open http://localhost:8080:
-
-```bash
-docker run -it --rm -p 8080:8080 -v "$PWD/docs/architecture:/usr/local/structurizr" structurizr/structurizr local
-```
-
-Under rootless Podman, add `--userns=keep-id:uid=65532,gid=65532` so the container can write to the folder. Structurizr saves the layout to `workspace.json`, which is committed. Every view currently uses `autolayout`, so remove that line from a view first if its arranged layout should be kept.
 
 For the reasons behind these design decisions, see [`../dev-log.md`](../dev-log.md).
