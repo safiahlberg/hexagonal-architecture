@@ -6,7 +6,7 @@ workspace "Library Lending" "C4 model of the hexagonal-architecture sample: a li
 
         lending = softwareSystem "Library Lending Service" "Lets members borrow, renew and return book copies, enforcing the library's lending rules." {
 
-            app = container "Lending Application" "Spring Boot 4 application built from the Maven reactor and run as bootstrap-1.0-SNAPSHOT.jar. Holds its store in memory." "Java 27, Spring Boot 4" {
+            app = container "Lending Application" "Spring Boot 4 application built from the Maven reactor and run as bootstrap-1.0-SNAPSHOT.jar." "Java 27, Spring Boot 4" {
 
                 group "Inbound adapters" {
                     restAdapter = component "REST Adapter" "LendingController maps HTTP requests onto use cases; LendingExceptionHandler turns exceptions into RFC 9457 problem details (404, 409 with reason, 400)." "Spring Web MVC, Jackson 3" "Adapter" {
@@ -45,7 +45,7 @@ workspace "Library Lending" "C4 model of the hexagonal-architecture sample: a li
                 }
 
                 group "Outbound adapters" {
-                    persistenceAdapter = component "Persistence Adapter" "In-memory repositories. Loans are stored as LoanRecord snapshots and rebuilt with Loan.restore, like a database would." "Plain Java, in-memory maps" "Adapter" {
+                    persistenceAdapter = component "Persistence Adapter" "JPA repositories that map domain objects to and from separate *Entity classes and rebuild loans with Loan.restore. JpaLoanRepository turns a violation of the one-active-loan-per-copy index into LendingRefusedException; JpaMemberRepository locks the member row for borrows. Holds the Flyway migrations." "Jakarta Persistence, Hibernate (no Spring)" "Adapter" {
                         properties {
                             "Maven module" "com.wixia.outbound:adapter-persistence"
                             "Package" "com.wixia.library.outbound.persistence"
@@ -59,16 +59,18 @@ workspace "Library Lending" "C4 model of the hexagonal-architecture sample: a li
                     }
                 }
 
-                bootstrap = component "Bootstrap" "Composition root. LibraryApplication starts Spring Boot; LendingConfiguration wires core and outbound adapters with explicit @Bean methods; SampleData seeds the store." "Spring Boot" "Composition root" {
+                bootstrap = component "Bootstrap" "Composition root. LibraryApplication starts Spring Boot; LendingConfiguration wires core and outbound adapters with explicit @Bean methods, runs each use case in a TransactionTemplate and defers notifications until commit (AfterCommitMemberNotifier); SampleData seeds the database." "Spring Boot, Spring ORM, Flyway" "Composition root" {
                     properties {
                         "Maven module" "com.wixia:bootstrap"
                         "Package" "com.wixia.library.bootstrap"
                     }
                 }
             }
+
+            database = container "Lending Database" "Members, book copies and loans. The schema comes from Flyway migrations; a partial unique index allows only one active loan per copy." "PostgreSQL 18" "Database"
         }
 
-        # Runtime use, and at the same time the allowed compile-time dependency direction: every arrow points inwards.
+        # Between components, runtime use and the allowed compile-time dependency direction at once: every arrow points inwards.
         client -> restAdapter "Borrows, renews and returns copies using" "JSON/HTTP: POST /loans, /loans/{id}/renewal, /copies/{id}/return"
         restAdapter -> inboundPort "Invokes use cases through"
         restAdapter -> domain "Reads loans and ids from"
@@ -78,17 +80,24 @@ workspace "Library Lending" "C4 model of the hexagonal-architecture sample: a li
         inboundPort -> domain "Is expressed in terms of"
         outboundPort -> domain "Is expressed in terms of"
         persistenceAdapter -> outboundPort "Implements the repositories of"
+        persistenceAdapter -> database "Reads from and writes to" "JPA/JDBC"
         notificationAdapter -> outboundPort "Implements MemberNotifier of"
         notificationAdapter -> member "Tells about confirmed and renewed loans" "Application log (placeholder for e-mail or SMS)"
         bootstrap -> core "Instantiates and wires"
         bootstrap -> persistenceAdapter "Instantiates and seeds"
-        bootstrap -> notificationAdapter "Instantiates"
+        bootstrap -> notificationAdapter "Instantiates, deferring its calls until commit"
+        bootstrap -> database "Migrates the schema of at startup" "Flyway over JDBC"
         bootstrap -> restAdapter "Component-scans"
 
         local = deploymentEnvironment "Local" {
             deploymentNode "Developer machine" "" "Linux, macOS or Windows" {
                 deploymentNode "JVM" "" "Java 27" {
                     containerInstance app
+                }
+                deploymentNode "Docker or Podman" "Started with docker compose up -d from compose.yaml." "Docker Compose" {
+                    deploymentNode "postgres" "Exposes port 5432; data in the postgres-data volume." "postgres:18 image" {
+                        containerInstance database
+                    }
                 }
             }
         }
@@ -104,7 +113,7 @@ workspace "Library Lending" "C4 model of the hexagonal-architecture sample: a li
         container lending "Containers" {
             include *
             autolayout lr
-            description "The service is a single Spring Boot application with an in-memory store."
+            description "The service is one Spring Boot application and its PostgreSQL database."
         }
 
         component app "Components" {
@@ -116,7 +125,7 @@ workspace "Library Lending" "C4 model of the hexagonal-architecture sample: a li
         deployment lending local "LocalDeployment" {
             include *
             autolayout lr
-            description "Run with java -jar bootstrap/target/bootstrap-1.0-SNAPSHOT.jar or mvn spring-boot:run -pl bootstrap."
+            description "docker compose up -d starts the database; then java -jar bootstrap/target/bootstrap-1.0-SNAPSHOT.jar."
         }
 
         styles {
@@ -151,6 +160,9 @@ workspace "Library Lending" "C4 model of the hexagonal-architecture sample: a li
             }
             element "Adapter" {
                 shape Component
+            }
+            element "Database" {
+                shape Cylinder
             }
             element "Composition root" {
                 background #dddddd
