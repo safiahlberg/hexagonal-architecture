@@ -85,4 +85,4 @@
 - `LoggingMemberNotifier` is drawn as notifying the *Member* through the application log, a placeholder for e-mail or SMS, rather than inventing an external mail system.
 - Everything is in one file, without `!include`, so the Structurizr MCP tools, which receive DSL text, can validate and export it.
 - `sync.sh` now drops every README line mentioning `docs/`, not just `docs/dev-log.md`, since generated projects have no `docs/`. The `## C4 model` section in `CLAUDE.md` sits after `## Archetype`, so `sync.sh` cuts it too. After re-running `sync.sh`, the only change to `archetype-resources` is `.structurizr/` in `__gitignore__`.
-- Not done: the diagrams have not been laid out in the Structurizr viewer, so there is no `workspace.json` yet and the views use auto-layout.
+- `workspace.json`, written by the viewer on first load, is committed. Every view still uses `autolayout` from the DSL, so it holds no hand-made layout yet. To keep a layout arranged in the viewer, remove `autolayout` from that view first.

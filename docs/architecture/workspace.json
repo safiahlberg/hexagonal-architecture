@@ -1,0 +1,545 @@
+{
+  "configuration" : { },
+  "description" : "C4 model of the hexagonal-architecture sample: a library-lending service built with ports and adapters.",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2026-10-29T19:48:15Z",
+  "model" : {
+    "deploymentNodes" : [ {
+      "children" : [ {
+        "containerInstances" : [ {
+          "containerId" : "4",
+          "environment" : "Local",
+          "id" : "34",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "dbb1b279-e78d-4984-8794-d4087520f70a"
+          },
+          "tags" : "Container Instance"
+        } ],
+        "environment" : "Local",
+        "id" : "33",
+        "instances" : "1",
+        "name" : "JVM",
+        "properties" : {
+          "structurizr.dsl.identifier" : "1fc92c65-03b2-4dbe-b3b4-d595d88435c6"
+        },
+        "tags" : "Element,Deployment Node",
+        "technology" : "Java 27"
+      } ],
+      "environment" : "Local",
+      "id" : "32",
+      "instances" : "1",
+      "name" : "Developer machine",
+      "properties" : {
+        "structurizr.dsl.identifier" : "d43775a8-723f-4e2c-b69b-3aeedabf1fbd"
+      },
+      "tags" : "Element,Deployment Node",
+      "technology" : "Linux, macOS or Windows"
+    } ],
+    "people" : [ {
+      "description" : "Front-desk application or staff tool that lends, renews and takes back book copies on behalf of members.",
+      "id" : "1",
+      "name" : "Library client",
+      "properties" : {
+        "structurizr.dsl.identifier" : "client"
+      },
+      "relationships" : [ {
+        "description" : "Borrows, renews and returns copies using",
+        "destinationId" : "5",
+        "id" : "13",
+        "sourceId" : "1",
+        "tags" : "Relationship",
+        "technology" : "JSON/HTTP: POST /loans, /loans/{id}/renewal, /copies/{id}/return"
+      }, {
+        "description" : "Borrows, renews and returns copies using",
+        "destinationId" : "4",
+        "id" : "14",
+        "linkedRelationshipId" : "13",
+        "sourceId" : "1",
+        "technology" : "JSON/HTTP: POST /loans, /loans/{id}/renewal, /copies/{id}/return"
+      }, {
+        "description" : "Borrows, renews and returns copies using",
+        "destinationId" : "3",
+        "id" : "15",
+        "linkedRelationshipId" : "13",
+        "sourceId" : "1",
+        "technology" : "JSON/HTTP: POST /loans, /loans/{id}/renewal, /copies/{id}/return"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Library member who borrows book copies and is told about their loans.",
+      "id" : "2",
+      "name" : "Member",
+      "properties" : {
+        "structurizr.dsl.identifier" : "member"
+      },
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "containers" : [ {
+        "components" : [ {
+          "description" : "LendingController maps HTTP requests onto use cases; LendingExceptionHandler turns exceptions into RFC 9457 problem details (404, 409 with reason, 400).",
+          "documentation" : { },
+          "group" : "Inbound adapters",
+          "id" : "5",
+          "name" : "REST Adapter",
+          "properties" : {
+            "structurizr.dsl.identifier" : "restAdapter",
+            "Maven module" : "com.wixia.inbound:adapter-rest",
+            "Package" : "com.wixia.library.inbound.rest"
+          },
+          "relationships" : [ {
+            "description" : "Invokes use cases through",
+            "destinationId" : "6",
+            "id" : "16",
+            "sourceId" : "5",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads loans and ids from",
+            "destinationId" : "8",
+            "id" : "17",
+            "sourceId" : "5",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Adapter",
+          "technology" : "Spring Web MVC, Jackson 3"
+        }, {
+          "description" : "Use-case interfaces BorrowBookUseCase, RenewLoanUseCase and ReturnBookUseCase, plus NotFoundException.",
+          "documentation" : { },
+          "group" : "Hexagon",
+          "id" : "6",
+          "name" : "Inbound Port",
+          "properties" : {
+            "structurizr.dsl.identifier" : "inboundPort",
+            "Maven module" : "com.wixia.inbound:inbound-port",
+            "Package" : "com.wixia.library.inbound.port"
+          },
+          "relationships" : [ {
+            "description" : "Is expressed in terms of",
+            "destinationId" : "8",
+            "id" : "21",
+            "sourceId" : "6",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Port",
+          "technology" : "Java interfaces"
+        }, {
+          "description" : "One service per use case (BorrowBookService, RenewLoanService, ReturnBookService). Loads aggregates, applies the lending policy, saves and notifies. Gets today from an injected Clock.",
+          "documentation" : { },
+          "group" : "Hexagon",
+          "id" : "7",
+          "name" : "Core",
+          "properties" : {
+            "structurizr.dsl.identifier" : "core",
+            "Maven module" : "com.wixia:core",
+            "Package" : "com.wixia.library.core"
+          },
+          "relationships" : [ {
+            "description" : "Implements",
+            "destinationId" : "6",
+            "id" : "18",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Loads, saves and notifies through",
+            "destinationId" : "9",
+            "id" : "19",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Applies lending rules with",
+            "destinationId" : "8",
+            "id" : "20",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Application",
+          "technology" : "Plain Java"
+        }, {
+          "description" : "Member, BookCopy and Loan. All lending rules live in LendingPolicy, which refuses with LendingRefusedException and a Reason.",
+          "documentation" : { },
+          "group" : "Hexagon",
+          "id" : "8",
+          "name" : "Domain",
+          "properties" : {
+            "structurizr.dsl.identifier" : "domain",
+            "Maven module" : "com.wixia:domain",
+            "Package" : "com.wixia.library.domain"
+          },
+          "tags" : "Element,Component,Domain",
+          "technology" : "Plain Java"
+        }, {
+          "description" : "Interfaces the core needs: MemberRepository, BookCopyRepository, LoanRepository and MemberNotifier.",
+          "documentation" : { },
+          "group" : "Hexagon",
+          "id" : "9",
+          "name" : "Outbound Port",
+          "properties" : {
+            "structurizr.dsl.identifier" : "outboundPort",
+            "Maven module" : "com.wixia.outbound:outbound-port",
+            "Package" : "com.wixia.library.outbound.port"
+          },
+          "relationships" : [ {
+            "description" : "Is expressed in terms of",
+            "destinationId" : "8",
+            "id" : "22",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Port",
+          "technology" : "Java interfaces"
+        }, {
+          "description" : "In-memory repositories. Loans are stored as LoanRecord snapshots and rebuilt with Loan.restore, like a database would.",
+          "documentation" : { },
+          "group" : "Outbound adapters",
+          "id" : "10",
+          "name" : "Persistence Adapter",
+          "properties" : {
+            "structurizr.dsl.identifier" : "persistenceAdapter",
+            "Maven module" : "com.wixia.outbound:adapter-persistence",
+            "Package" : "com.wixia.library.outbound.persistence"
+          },
+          "relationships" : [ {
+            "description" : "Implements the repositories of",
+            "destinationId" : "9",
+            "id" : "23",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Adapter",
+          "technology" : "Plain Java, in-memory maps"
+        }, {
+          "description" : "LoggingMemberNotifier writes the member's loan confirmations and renewals to the application log.",
+          "documentation" : { },
+          "group" : "Outbound adapters",
+          "id" : "11",
+          "name" : "Notification Adapter",
+          "properties" : {
+            "structurizr.dsl.identifier" : "notificationAdapter",
+            "Maven module" : "com.wixia.outbound:adapter-notification",
+            "Package" : "com.wixia.library.outbound.notification"
+          },
+          "relationships" : [ {
+            "description" : "Implements MemberNotifier of",
+            "destinationId" : "9",
+            "id" : "24",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Tells about confirmed and renewed loans",
+            "destinationId" : "2",
+            "id" : "25",
+            "sourceId" : "11",
+            "tags" : "Relationship",
+            "technology" : "Application log (placeholder for e-mail or SMS)"
+          } ],
+          "tags" : "Element,Component,Adapter",
+          "technology" : "java.lang.System.Logger"
+        }, {
+          "description" : "Composition root. LibraryApplication starts Spring Boot; LendingConfiguration wires core and outbound adapters with explicit @Bean methods; SampleData seeds the store.",
+          "documentation" : { },
+          "id" : "12",
+          "name" : "Bootstrap",
+          "properties" : {
+            "structurizr.dsl.identifier" : "bootstrap",
+            "Maven module" : "com.wixia:bootstrap",
+            "Package" : "com.wixia.library.bootstrap"
+          },
+          "relationships" : [ {
+            "description" : "Instantiates and wires",
+            "destinationId" : "7",
+            "id" : "28",
+            "sourceId" : "12",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Instantiates and seeds",
+            "destinationId" : "10",
+            "id" : "29",
+            "sourceId" : "12",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Instantiates",
+            "destinationId" : "11",
+            "id" : "30",
+            "sourceId" : "12",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Component-scans",
+            "destinationId" : "5",
+            "id" : "31",
+            "sourceId" : "12",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Composition root",
+          "technology" : "Spring Boot"
+        } ],
+        "description" : "Spring Boot 4 application built from the Maven reactor and run as bootstrap-1.0-SNAPSHOT.jar. Holds its store in memory.",
+        "documentation" : { },
+        "id" : "4",
+        "name" : "Lending Application",
+        "properties" : {
+          "structurizr.dsl.identifier" : "app"
+        },
+        "relationships" : [ {
+          "description" : "Tells about confirmed and renewed loans",
+          "destinationId" : "2",
+          "id" : "26",
+          "linkedRelationshipId" : "25",
+          "sourceId" : "4",
+          "technology" : "Application log (placeholder for e-mail or SMS)"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Java 27, Spring Boot 4"
+      } ],
+      "description" : "Lets members borrow, renew and return book copies, enforcing the library's lending rules.",
+      "documentation" : { },
+      "id" : "3",
+      "name" : "Library Lending Service",
+      "properties" : {
+        "structurizr.dsl.identifier" : "lending"
+      },
+      "relationships" : [ {
+        "description" : "Tells about confirmed and renewed loans",
+        "destinationId" : "2",
+        "id" : "27",
+        "linkedRelationshipId" : "25",
+        "sourceId" : "3",
+        "technology" : "Application log (placeholder for e-mail or SMS)"
+      } ],
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "Library Lending",
+  "properties" : {
+    "structurizr.inspection.error" : "19",
+    "structurizr.dsl" : "d29ya3NwYWNlICJMaWJyYXJ5IExlbmRpbmciICJDNCBtb2RlbCBvZiB0aGUgaGV4YWdvbmFsLWFyY2hpdGVjdHVyZSBzYW1wbGU6IGEgbGlicmFyeS1sZW5kaW5nIHNlcnZpY2UgYnVpbHQgd2l0aCBwb3J0cyBhbmQgYWRhcHRlcnMuIiB7CgogICAgbW9kZWwgewogICAgICAgIGNsaWVudCA9IHBlcnNvbiAiTGlicmFyeSBjbGllbnQiICJGcm9udC1kZXNrIGFwcGxpY2F0aW9uIG9yIHN0YWZmIHRvb2wgdGhhdCBsZW5kcywgcmVuZXdzIGFuZCB0YWtlcyBiYWNrIGJvb2sgY29waWVzIG9uIGJlaGFsZiBvZiBtZW1iZXJzLiIKICAgICAgICBtZW1iZXIgPSBwZXJzb24gIk1lbWJlciIgIkxpYnJhcnkgbWVtYmVyIHdobyBib3Jyb3dzIGJvb2sgY29waWVzIGFuZCBpcyB0b2xkIGFib3V0IHRoZWlyIGxvYW5zLiIKCiAgICAgICAgbGVuZGluZyA9IHNvZnR3YXJlU3lzdGVtICJMaWJyYXJ5IExlbmRpbmcgU2VydmljZSIgIkxldHMgbWVtYmVycyBib3Jyb3csIHJlbmV3IGFuZCByZXR1cm4gYm9vayBjb3BpZXMsIGVuZm9yY2luZyB0aGUgbGlicmFyeSdzIGxlbmRpbmcgcnVsZXMuIiB7CgogICAgICAgICAgICBhcHAgPSBjb250YWluZXIgIkxlbmRpbmcgQXBwbGljYXRpb24iICJTcHJpbmcgQm9vdCA0IGFwcGxpY2F0aW9uIGJ1aWx0IGZyb20gdGhlIE1hdmVuIHJlYWN0b3IgYW5kIHJ1biBhcyBib290c3RyYXAtMS4wLVNOQVBTSE9ULmphci4gSG9sZHMgaXRzIHN0b3JlIGluIG1lbW9yeS4iICJKYXZhIDI3LCBTcHJpbmcgQm9vdCA0IiB7CgogICAgICAgICAgICAgICAgZ3JvdXAgIkluYm91bmQgYWRhcHRlcnMiIHsKICAgICAgICAgICAgICAgICAgICByZXN0QWRhcHRlciA9IGNvbXBvbmVudCAiUkVTVCBBZGFwdGVyIiAiTGVuZGluZ0NvbnRyb2xsZXIgbWFwcyBIVFRQIHJlcXVlc3RzIG9udG8gdXNlIGNhc2VzOyBMZW5kaW5nRXhjZXB0aW9uSGFuZGxlciB0dXJucyBleGNlcHRpb25zIGludG8gUkZDIDk0NTcgcHJvYmxlbSBkZXRhaWxzICg0MDQsIDQwOSB3aXRoIHJlYXNvbiwgNDAwKS4iICJTcHJpbmcgV2ViIE1WQywgSmFja3NvbiAzIiAiQWRhcHRlciIgewogICAgICAgICAgICAgICAgICAgICAgICBwcm9wZXJ0aWVzIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJNYXZlbiBtb2R1bGUiICJjb20ud2l4aWEuaW5ib3VuZDphZGFwdGVyLXJlc3QiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiUGFja2FnZSIgImNvbS53aXhpYS5saWJyYXJ5LmluYm91bmQucmVzdCIKICAgICAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAgICBncm91cCAiSGV4YWdvbiIgewogICAgICAgICAgICAgICAgICAgIGluYm91bmRQb3J0ID0gY29tcG9uZW50ICJJbmJvdW5kIFBvcnQiICJVc2UtY2FzZSBpbnRlcmZhY2VzIEJvcnJvd0Jvb2tVc2VDYXNlLCBSZW5ld0xvYW5Vc2VDYXNlIGFuZCBSZXR1cm5Cb29rVXNlQ2FzZSwgcGx1cyBOb3RGb3VuZEV4Y2VwdGlvbi4iICJKYXZhIGludGVyZmFjZXMiICJQb3J0IiB7CiAgICAgICAgICAgICAgICAgICAgICAgIHByb3BlcnRpZXMgewogICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1hdmVuIG1vZHVsZSIgImNvbS53aXhpYS5pbmJvdW5kOmluYm91bmQtcG9ydCIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJQYWNrYWdlIiAiY29tLndpeGlhLmxpYnJhcnkuaW5ib3VuZC5wb3J0IgogICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAgIGNvcmUgPSBjb21wb25lbnQgIkNvcmUiICJPbmUgc2VydmljZSBwZXIgdXNlIGNhc2UgKEJvcnJvd0Jvb2tTZXJ2aWNlLCBSZW5ld0xvYW5TZXJ2aWNlLCBSZXR1cm5Cb29rU2VydmljZSkuIExvYWRzIGFnZ3JlZ2F0ZXMsIGFwcGxpZXMgdGhlIGxlbmRpbmcgcG9saWN5LCBzYXZlcyBhbmQgbm90aWZpZXMuIEdldHMgdG9kYXkgZnJvbSBhbiBpbmplY3RlZCBDbG9jay4iICJQbGFpbiBKYXZhIiAiQXBwbGljYXRpb24iIHsKICAgICAgICAgICAgICAgICAgICAgICAgcHJvcGVydGllcyB7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiTWF2ZW4gbW9kdWxlIiAiY29tLndpeGlhOmNvcmUiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiUGFja2FnZSIgImNvbS53aXhpYS5saWJyYXJ5LmNvcmUiCiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgZG9tYWluID0gY29tcG9uZW50ICJEb21haW4iICJNZW1iZXIsIEJvb2tDb3B5IGFuZCBMb2FuLiBBbGwgbGVuZGluZyBydWxlcyBsaXZlIGluIExlbmRpbmdQb2xpY3ksIHdoaWNoIHJlZnVzZXMgd2l0aCBMZW5kaW5nUmVmdXNlZEV4Y2VwdGlvbiBhbmQgYSBSZWFzb24uIiAiUGxhaW4gSmF2YSIgIkRvbWFpbiIgewogICAgICAgICAgICAgICAgICAgICAgICBwcm9wZXJ0aWVzIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJNYXZlbiBtb2R1bGUiICJjb20ud2l4aWE6ZG9tYWluIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgIlBhY2thZ2UiICJjb20ud2l4aWEubGlicmFyeS5kb21haW4iCiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgb3V0Ym91bmRQb3J0ID0gY29tcG9uZW50ICJPdXRib3VuZCBQb3J0IiAiSW50ZXJmYWNlcyB0aGUgY29yZSBuZWVkczogTWVtYmVyUmVwb3NpdG9yeSwgQm9va0NvcHlSZXBvc2l0b3J5LCBMb2FuUmVwb3NpdG9yeSBhbmQgTWVtYmVyTm90aWZpZXIuIiAiSmF2YSBpbnRlcmZhY2VzIiAiUG9ydCIgewogICAgICAgICAgICAgICAgICAgICAgICBwcm9wZXJ0aWVzIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJNYXZlbiBtb2R1bGUiICJjb20ud2l4aWEub3V0Ym91bmQ6b3V0Ym91bmQtcG9ydCIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJQYWNrYWdlIiAiY29tLndpeGlhLmxpYnJhcnkub3V0Ym91bmQucG9ydCIKICAgICAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAgICBncm91cCAiT3V0Ym91bmQgYWRhcHRlcnMiIHsKICAgICAgICAgICAgICAgICAgICBwZXJzaXN0ZW5jZUFkYXB0ZXIgPSBjb21wb25lbnQgIlBlcnNpc3RlbmNlIEFkYXB0ZXIiICJJbi1tZW1vcnkgcmVwb3NpdG9yaWVzLiBMb2FucyBhcmUgc3RvcmVkIGFzIExvYW5SZWNvcmQgc25hcHNob3RzIGFuZCByZWJ1aWx0IHdpdGggTG9hbi5yZXN0b3JlLCBsaWtlIGEgZGF0YWJhc2Ugd291bGQuIiAiUGxhaW4gSmF2YSwgaW4tbWVtb3J5IG1hcHMiICJBZGFwdGVyIiB7CiAgICAgICAgICAgICAgICAgICAgICAgIHByb3BlcnRpZXMgewogICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1hdmVuIG1vZHVsZSIgImNvbS53aXhpYS5vdXRib3VuZDphZGFwdGVyLXBlcnNpc3RlbmNlIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgIlBhY2thZ2UiICJjb20ud2l4aWEubGlicmFyeS5vdXRib3VuZC5wZXJzaXN0ZW5jZSIKICAgICAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBub3RpZmljYXRpb25BZGFwdGVyID0gY29tcG9uZW50ICJOb3RpZmljYXRpb24gQWRhcHRlciIgIkxvZ2dpbmdNZW1iZXJOb3RpZmllciB3cml0ZXMgdGhlIG1lbWJlcidzIGxvYW4gY29uZmlybWF0aW9ucyBhbmQgcmVuZXdhbHMgdG8gdGhlIGFwcGxpY2F0aW9uIGxvZy4iICJqYXZhLmxhbmcuU3lzdGVtLkxvZ2dlciIgIkFkYXB0ZXIiIHsKICAgICAgICAgICAgICAgICAgICAgICAgcHJvcGVydGllcyB7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiTWF2ZW4gbW9kdWxlIiAiY29tLndpeGlhLm91dGJvdW5kOmFkYXB0ZXItbm90aWZpY2F0aW9uIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgIlBhY2thZ2UiICJjb20ud2l4aWEubGlicmFyeS5vdXRib3VuZC5ub3RpZmljYXRpb24iCiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgYm9vdHN0cmFwID0gY29tcG9uZW50ICJCb290c3RyYXAiICJDb21wb3NpdGlvbiByb290LiBMaWJyYXJ5QXBwbGljYXRpb24gc3RhcnRzIFNwcmluZyBCb290OyBMZW5kaW5nQ29uZmlndXJhdGlvbiB3aXJlcyBjb3JlIGFuZCBvdXRib3VuZCBhZGFwdGVycyB3aXRoIGV4cGxpY2l0IEBCZWFuIG1ldGhvZHM7IFNhbXBsZURhdGEgc2VlZHMgdGhlIHN0b3JlLiIgIlNwcmluZyBCb290IiAiQ29tcG9zaXRpb24gcm9vdCIgewogICAgICAgICAgICAgICAgICAgIHByb3BlcnRpZXMgewogICAgICAgICAgICAgICAgICAgICAgICAiTWF2ZW4gbW9kdWxlIiAiY29tLndpeGlhOmJvb3RzdHJhcCIKICAgICAgICAgICAgICAgICAgICAgICAgIlBhY2thZ2UiICJjb20ud2l4aWEubGlicmFyeS5ib290c3RyYXAiCiAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgfQoKICAgICAgICAjIFJ1bnRpbWUgdXNlLCBhbmQgYXQgdGhlIHNhbWUgdGltZSB0aGUgYWxsb3dlZCBjb21waWxlLXRpbWUgZGVwZW5kZW5jeSBkaXJlY3Rpb246IGV2ZXJ5IGFycm93IHBvaW50cyBpbndhcmRzLgogICAgICAgIGNsaWVudCAtPiByZXN0QWRhcHRlciAiQm9ycm93cywgcmVuZXdzIGFuZCByZXR1cm5zIGNvcGllcyB1c2luZyIgIkpTT04vSFRUUDogUE9TVCAvbG9hbnMsIC9sb2Fucy97aWR9L3JlbmV3YWwsIC9jb3BpZXMve2lkfS9yZXR1cm4iCiAgICAgICAgcmVzdEFkYXB0ZXIgLT4gaW5ib3VuZFBvcnQgIkludm9rZXMgdXNlIGNhc2VzIHRocm91Z2giCiAgICAgICAgcmVzdEFkYXB0ZXIgLT4gZG9tYWluICJSZWFkcyBsb2FucyBhbmQgaWRzIGZyb20iCiAgICAgICAgY29yZSAtPiBpbmJvdW5kUG9ydCAiSW1wbGVtZW50cyIKICAgICAgICBjb3JlIC0+IG91dGJvdW5kUG9ydCAiTG9hZHMsIHNhdmVzIGFuZCBub3RpZmllcyB0aHJvdWdoIgogICAgICAgIGNvcmUgLT4gZG9tYWluICJBcHBsaWVzIGxlbmRpbmcgcnVsZXMgd2l0aCIKICAgICAgICBpbmJvdW5kUG9ydCAtPiBkb21haW4gIklzIGV4cHJlc3NlZCBpbiB0ZXJtcyBvZiIKICAgICAgICBvdXRib3VuZFBvcnQgLT4gZG9tYWluICJJcyBleHByZXNzZWQgaW4gdGVybXMgb2YiCiAgICAgICAgcGVyc2lzdGVuY2VBZGFwdGVyIC0+IG91dGJvdW5kUG9ydCAiSW1wbGVtZW50cyB0aGUgcmVwb3NpdG9yaWVzIG9mIgogICAgICAgIG5vdGlmaWNhdGlvbkFkYXB0ZXIgLT4gb3V0Ym91bmRQb3J0ICJJbXBsZW1lbnRzIE1lbWJlck5vdGlmaWVyIG9mIgogICAgICAgIG5vdGlmaWNhdGlvbkFkYXB0ZXIgLT4gbWVtYmVyICJUZWxscyBhYm91dCBjb25maXJtZWQgYW5kIHJlbmV3ZWQgbG9hbnMiICJBcHBsaWNhdGlvbiBsb2cgKHBsYWNlaG9sZGVyIGZvciBlLW1haWwgb3IgU01TKSIKICAgICAgICBib290c3RyYXAgLT4gY29yZSAiSW5zdGFudGlhdGVzIGFuZCB3aXJlcyIKICAgICAgICBib290c3RyYXAgLT4gcGVyc2lzdGVuY2VBZGFwdGVyICJJbnN0YW50aWF0ZXMgYW5kIHNlZWRzIgogICAgICAgIGJvb3RzdHJhcCAtPiBub3RpZmljYXRpb25BZGFwdGVyICJJbnN0YW50aWF0ZXMiCiAgICAgICAgYm9vdHN0cmFwIC0+IHJlc3RBZGFwdGVyICJDb21wb25lbnQtc2NhbnMiCgogICAgICAgIGxvY2FsID0gZGVwbG95bWVudEVudmlyb25tZW50ICJMb2NhbCIgewogICAgICAgICAgICBkZXBsb3ltZW50Tm9kZSAiRGV2ZWxvcGVyIG1hY2hpbmUiICIiICJMaW51eCwgbWFjT1Mgb3IgV2luZG93cyIgewogICAgICAgICAgICAgICAgZGVwbG95bWVudE5vZGUgIkpWTSIgIiIgIkphdmEgMjciIHsKICAgICAgICAgICAgICAgICAgICBjb250YWluZXJJbnN0YW5jZSBhcHAKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KCiAgICB2aWV3cyB7CiAgICAgICAgc3lzdGVtQ29udGV4dCBsZW5kaW5nICJTeXN0ZW1Db250ZXh0IiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgICAgICBhdXRvbGF5b3V0IGxyCiAgICAgICAgICAgIGRlc2NyaXB0aW9uICJXaG8gdXNlcyB0aGUgTGlicmFyeSBMZW5kaW5nIFNlcnZpY2UuIgogICAgICAgIH0KCiAgICAgICAgY29udGFpbmVyIGxlbmRpbmcgIkNvbnRhaW5lcnMiIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgICAgIGF1dG9sYXlvdXQgbHIKICAgICAgICAgICAgZGVzY3JpcHRpb24gIlRoZSBzZXJ2aWNlIGlzIGEgc2luZ2xlIFNwcmluZyBCb290IGFwcGxpY2F0aW9uIHdpdGggYW4gaW4tbWVtb3J5IHN0b3JlLiIKICAgICAgICB9CgogICAgICAgIGNvbXBvbmVudCBhcHAgIkNvbXBvbmVudHMiIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgICAgIGF1dG9sYXlvdXQgbHIKICAgICAgICAgICAgZGVzY3JpcHRpb24gIlBvcnRzIGFuZCBhZGFwdGVyczogb25lIGNvbXBvbmVudCBwZXIgTWF2ZW4gbW9kdWxlLiBBZGFwdGVycyBkZXBlbmQgb24gcG9ydHMsIHBvcnRzIGFuZCBjb3JlIG9uIHRoZSBkb21haW4sIG5ldmVyIHRoZSBvdGhlciB3YXkgcm91bmQuIgogICAgICAgIH0KCiAgICAgICAgZGVwbG95bWVudCBsZW5kaW5nIGxvY2FsICJMb2NhbERlcGxveW1lbnQiIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgICAgIGF1dG9sYXlvdXQgbHIKICAgICAgICAgICAgZGVzY3JpcHRpb24gIlJ1biB3aXRoIGphdmEgLWphciBib290c3RyYXAvdGFyZ2V0L2Jvb3RzdHJhcC0xLjAtU05BUFNIT1QuamFyIG9yIG12biBzcHJpbmctYm9vdDpydW4gLXBsIGJvb3RzdHJhcC4iCiAgICAgICAgfQoKICAgICAgICBzdHlsZXMgewogICAgICAgICAgICBlbGVtZW50ICJQZXJzb24iIHsKICAgICAgICAgICAgICAgIHNoYXBlIFBlcnNvbgogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjMDg0MjdiCiAgICAgICAgICAgICAgICBjb2xvciAjZmZmZmZmCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiU29mdHdhcmUgU3lzdGVtIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICMxMTY4YmQKICAgICAgICAgICAgICAgIGNvbG9yICNmZmZmZmYKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJDb250YWluZXIiIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzQzOGRkNQogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkNvbXBvbmVudCIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjODViYmYwCiAgICAgICAgICAgICAgICBjb2xvciAjMDAwMDAwCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiRG9tYWluIiB7CiAgICAgICAgICAgICAgICBzaGFwZSBIZXhhZ29uCiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICNmNWMyNDIKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJBcHBsaWNhdGlvbiIgewogICAgICAgICAgICAgICAgc2hhcGUgSGV4YWdvbgogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjZjhkNzdhCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiUG9ydCIgewogICAgICAgICAgICAgICAgc2hhcGUgUm91bmRlZEJveAogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjZmJlOWI3CiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiQWRhcHRlciIgewogICAgICAgICAgICAgICAgc2hhcGUgQ29tcG9uZW50CiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiQ29tcG9zaXRpb24gcm9vdCIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjZGRkZGRkCiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9Cgp9",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "componentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "4",
+      "description" : "Ports and adapters: one component per Maven module. Adapters depend on ports, ports and core on the domain, never the other way round.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "Components",
+      "name" : "Component View: Library Lending Service - Lending Application",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "13"
+      }, {
+        "id" : "16"
+      }, {
+        "id" : "17"
+      }, {
+        "id" : "18"
+      }, {
+        "id" : "19"
+      }, {
+        "id" : "20"
+      }, {
+        "id" : "21"
+      }, {
+        "id" : "22"
+      }, {
+        "id" : "23"
+      }, {
+        "id" : "24"
+      }, {
+        "id" : "25"
+      }, {
+        "id" : "28"
+      }, {
+        "id" : "29"
+      }, {
+        "id" : "30"
+      }, {
+        "id" : "31"
+      } ]
+    } ],
+    "configuration" : {
+      "styles" : {
+        "elements" : [ {
+          "shape" : "Component",
+          "tag" : "Adapter"
+        }, {
+          "background" : "#f8d77a",
+          "shape" : "Hexagon",
+          "tag" : "Application"
+        }, {
+          "background" : "#85bbf0",
+          "color" : "#000000",
+          "tag" : "Component"
+        }, {
+          "background" : "#dddddd",
+          "tag" : "Composition root"
+        }, {
+          "background" : "#438dd5",
+          "color" : "#ffffff",
+          "tag" : "Container"
+        }, {
+          "background" : "#f5c242",
+          "shape" : "Hexagon",
+          "tag" : "Domain"
+        }, {
+          "background" : "#08427b",
+          "color" : "#ffffff",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "background" : "#fbe9b7",
+          "shape" : "RoundedBox",
+          "tag" : "Port"
+        }, {
+          "background" : "#1168bd",
+          "color" : "#ffffff",
+          "tag" : "Software System"
+        } ]
+      },
+      "terminology" : { }
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "The service is a single Spring Boot application with an in-memory store.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "Containers",
+      "name" : "Container View: Library Lending Service",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "14"
+      }, {
+        "id" : "26"
+      } ],
+      "softwareSystemId" : "3"
+    } ],
+    "deploymentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Run with java -jar bootstrap/target/bootstrap-1.0-SNAPSHOT.jar or mvn spring-boot:run -pl bootstrap.",
+      "elements" : [ {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "33",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "34",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "environment" : "Local",
+      "key" : "LocalDeployment",
+      "name" : "Deployment View: Library Lending Service - Local",
+      "order" : 4,
+      "softwareSystemId" : "3"
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Who uses the Library Lending Service.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "SystemContext",
+      "name" : "System Context View: Library Lending Service",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "15"
+      }, {
+        "id" : "27"
+      } ],
+      "softwareSystemId" : "3"
+    } ]
+  }
+}
