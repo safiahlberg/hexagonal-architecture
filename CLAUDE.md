@@ -19,7 +19,9 @@ mvn test -pl inbound/adapter-rest -am \
 
 Without `-am`, `-pl` resolves sibling modules from `~/.m2`, which may hold stale snapshots. Run `mvn install -DskipTests` first, or add `-am`.
 
-Run the app: `mvn package -DskipTests && java -jar bootstrap/target/bootstrap-1.0-SNAPSHOT.jar`, or, after `mvn install -DskipTests`, `mvn spring-boot:run -pl bootstrap`. The store is in memory and starts with sample members and copies that have fixed ids (see `SampleData`); they are logged at startup.
+The `adapter-persistence` and `bootstrap` tests start PostgreSQL with Testcontainers, so they need Docker, or Podman with its socket running (`systemctl --user start podman.socket`; `DOCKER_HOST` points at it).
+
+Run the app against PostgreSQL from `compose.yaml`: `docker compose up -d`, then `mvn package -DskipTests && java -jar bootstrap/target/bootstrap-1.0-SNAPSHOT.jar`. Or, after `mvn install -DskipTests`, `mvn spring-boot:test-run -pl bootstrap` runs it against a throwaway container (`TestLibraryApplication`). At every start, `SampleData` writes sample members and copies with fixed ids and logs them.
 
 ## Module structure and dependency rules
 
@@ -54,13 +56,19 @@ Conventions that keep these rules effective:
 - Whether a copy is available is derived from active loans (`LoanRepository.findActiveByCopy`); `BookCopy` has no status field.
 - Core has one service per inbound port (`BorrowBookService`, ...). It gets "today" from an injected `java.time.Clock`; tests use `Clock.fixed`.
 - `core` tests can't use the real adapters, which the enforcer bans even in test scope. They use `FakeLibrary`, a single fake for all outbound ports.
-- `InMemoryLoanRepository` stores `LoanRecord` snapshots, like a database would. Changes to a `Loan` only persist after `save`.
+- `adapter-persistence` uses plain JPA (Hibernate, no Spring Data) on PostgreSQL. Domain objects are mapped to and from separate `*Entity` classes, so the domain has no persistence annotations and changes to a `Loan` only persist after `save`. Column names are explicit in `@Column`, because the adapter tests run Hibernate without Boot's naming strategy.
+- The schema is the Flyway migrations in `adapter-persistence/src/main/resources/db/migration`; Hibernate only validates it (`ddl-auto=validate`, also in the adapter tests). Change the schema with a new migration, never by editing an applied one.
+- A partial unique index allows one active loan per copy. `JpaLoanRepository.save` flushes and turns a violation into `LendingRefusedException(COPY_ON_LOAN)`, which covers concurrent borrows that both passed `LendingPolicy`. For the loan limit, `BorrowBookService` loads the member with `MemberRepository.findByIdForUpdate`, a row lock held until commit, so borrows by one member run one after the other. `ConcurrentBorrowingTest` in `bootstrap` covers both races.
+- The adapter tests are Spring-free: `TestDatabase` starts one container per test JVM, runs Flyway and builds an `EntityManagerFactory`. Each test rolls back its transaction; clear the entity manager before reading, or reads come from its cache.
 
 ## Spring wiring
 
 - The root POM imports `spring-boot-dependencies` as a BOM; it does not use `spring-boot-starter-parent`. So `-parameters` (`maven.compiler.parameters`) and the `repackage` execution in `bootstrap` are configured explicitly. `junit.version` is kept in line with the JUnit version Spring Boot manages.
 - `core` and the outbound adapters have no Spring annotations. They are wired with explicit `@Bean` methods in `bootstrap/.../LendingConfiguration`.
+- Transactions are per use case: `LendingConfiguration` exposes each use case as a lambda that runs the core service in a `TransactionTemplate`, so `core` needs no `@Transactional`. The repositories get a shared `EntityManager` proxy bound to the current transaction, and `@EntityScan` points at the adapter's package. `spring.jpa.open-in-view` is off.
+- The `MemberNotifier` bean is `AfterCommitMemberNotifier` wrapping the real notifier: notifications go out only after the use case's transaction commits, are dropped on rollback, and a failing notifier is logged rather than failing the committed request. Delivery is at most once; an outbox would be needed for guaranteed delivery.
 - `LibraryApplication` scans only `com.wixia.library.bootstrap` and `com.wixia.library.inbound.rest`. A new Spring-annotated adapter package must be added to `scanBasePackages`.
+- `bootstrap` tests import `TestDatabaseConfiguration`, a PostgreSQL container with `@ServiceConnection`, which overrides the datasource in `application.properties`. Boot 4 splits persistence into modules: `bootstrap` uses `spring-boot-hibernate`, `spring-boot-starter-jdbc` and `spring-boot-starter-flyway` rather than `spring-boot-starter-data-jpa`.
 - `LendingExceptionHandler` turns the exceptions into RFC 9457 problem details: `NotFoundException` → 404, `LendingRefusedException` → 409 with `reason`, malformed or incomplete requests → 400 with a specific `detail`. It is `@Order(HIGHEST_PRECEDENCE)` because `bootstrap` enables `spring.mvc.problemdetails.enabled`, and Boot's handler would otherwise answer first with generic messages. `@WebMvcTest` in `adapter-rest` does not load that setting, so behaviour that depends on it is covered by `LibraryApplicationTest` in `bootstrap`.
 - Modules whose tests use Mockito (`adapter-rest`, `bootstrap`, via the `-webmvc-test` starter) declare `maven-dependency-plugin` (its `properties` execution is in the root `pluginManagement`) and give surefire `-javaagent:${org.mockito:mockito-core:jar} -Xshare:off`. This loads Mockito as an agent instead of letting it self-attach, which the JDK warns about; `-Xshare:off` silences the class-data-sharing warning caused by Mockito appending to the boot class path. It is per module because the jar-path property only exists where Mockito is a dependency; a new module using Mockito needs both plugin entries.
 - Spring Boot 4 uses Jackson 3 (`tools.jackson.*` packages, not `com.fasterxml.jackson.*`) and the `spring-boot-starter-webmvc` / `-webmvc-test` starters.

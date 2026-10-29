@@ -56,4 +56,4 @@ If `git status` shows changes under `archetype/` after running `sync.sh`, the ar
 
 `sync.sh` fails if a module of the sample isn't declared in `src/main/resources/META-INF/maven/archetype-metadata.xml`. A new module has to be added there by hand.
 
-`mvn install` runs the integration test in `src/test/resources/projects/basic`: it generates a project with coordinates that differ from the sample's and runs `mvn verify` on it, which checks the enforcer rules and runs all tests. The generated project and its `build.log` are in `target/test-classes/projects/basic/project/`.
+`mvn install` runs the integration test in `src/test/resources/projects/basic`: it generates a project with coordinates that differ from the sample's and runs `mvn verify` on it, which checks the enforcer rules and runs all tests. Some of those tests start PostgreSQL with Testcontainers, so Docker or Podman must be running. The generated project and its `build.log` are in `target/test-classes/projects/basic/project/`.

@@ -44,6 +44,12 @@ final class FakeLibrary implements MemberRepository, BookCopyRepository, LoanRep
         return Optional.ofNullable(members.get(id));
     }
 
+    /** The tests run one use case at a time, so there is nothing to lock. */
+    @Override
+    public Optional<Member> findByIdForUpdate(MemberId id) {
+        return findById(id);
+    }
+
     @Override
     public Optional<BookCopy> findById(BookCopyId id) {
         return Optional.ofNullable(copies.get(id));
