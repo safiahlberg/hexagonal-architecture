@@ -106,3 +106,19 @@
 - `sync.sh` now drops every README line mentioning `docs/`, not just `docs/dev-log.md`, since generated projects have no `docs/`. The `## C4 model` section in `CLAUDE.md` sits after `## Archetype`, so `sync.sh` cuts it too. After re-running `sync.sh`, the only change to `archetype-resources` is `.structurizr/` in `__gitignore__`.
 - `workspace.json`, written by the viewer on first load, is committed. Every view still uses `autolayout` from the DSL, so it holds no hand-made layout yet. To keep a layout arranged in the viewer, remove `autolayout` from that view first.
 - Follow-up after merging `main` into `jpa`: the model now describes the PostgreSQL persistence. *Lending Database* (PostgreSQL 18) is a second container, which the persistence adapter reads and writes over JPA and `bootstrap` migrates with Flyway at startup. The persistence adapter is described as JPA repositories with separate entity classes, the copy index and the member row lock, and `bootstrap` as also owning the per-use-case transactions and the after-commit notifier. The `Local` deployment adds the `postgres` container started from `compose.yaml`. The point above about the store not being a container applied only to the in-memory version. The Testcontainers setup used by the tests and by `mvn spring-boot:test-run` isn't modelled, since it isn't how the service is run.
+
+## 2026-10-29 — architecture-docs
+
+**Goal:** Describe the architecture on GitHub with the C4 model's diagrams, so it can be read without running Structurizr.
+
+**Steps**
+1. `docs/architecture/README.md` walks through the four views (system context, containers, components, local deployment), each with its diagram. It adds tables of containers and components with their Maven modules, the dependency rules, and the path of a borrow through the components.
+2. `docs/architecture/export-diagrams.sh` exports the views with the `structurizr/structurizr` image and writes them as Mermaid between `<!-- diagram:VIEW -->` markers in that page. Running it twice gives the same output. A view without a marker fails the script.
+3. The root README's Further reading and the `## C4 model` section of `CLAUDE.md` point to the page and the script. `sync.sh` leaves both out of the archetype, as before.
+
+**Decisions / deviations**
+- Mermaid rather than exported images, because GitHub renders it in Markdown, and diagram changes then show up in diffs.
+- The export comes from the Structurizr CLI in the existing image rather than from hand-written Mermaid, so the diagrams can't drift from `workspace.dsl`. The cost is that regenerating needs Docker or Podman, like the tests do.
+- The exporter's labels are styled `<div>`s, which GitHub's Mermaid sanitising may strip. The script rewrites them as `<b>`, `<small>` and `<br/>`. It also removes the white frame the exporter draws around each diagram, which hid the arrows in GitHub's dark theme, and makes nested boundaries transparent.
+- The step-by-step borrow is prose, not a dynamic view, for the reason given in `c4-model`: its runtime flow runs against the arrows of the dependency direction.
+- Not verified: how GitHub actually renders the diagrams. Check after the first push.

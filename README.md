@@ -137,7 +137,7 @@ The generated project builds and runs as is. If you change this sample, regenera
 
 ## Further reading
 
-- [`docs/architecture/workspace.dsl`](docs/architecture/workspace.dsl) is a [C4 model](https://c4model.com) of the service in the [Structurizr DSL](https://docs.structurizr.com/dsl): system context, container, component (one per module) and deployment views.
+- [`docs/architecture/`](docs/architecture/README.md) describes the architecture as a [C4 model](https://c4model.com), with system context, container, component (one per module) and deployment diagrams generated from a [Structurizr DSL](https://docs.structurizr.com/dsl) model.
 - [`docs/dev-log.md`](docs/dev-log.md) records how the project was restructured and why the design decisions were made.
 - [`CLAUDE.md`](CLAUDE.md) has more detail on conventions, testing and the Spring setup.
 - [`archetype/`](archetype/README.md) is a Maven archetype that generates a new project from this sample, under your own groupId and package.

@@ -79,7 +79,7 @@ Conventions that keep these rules effective:
 
 ## C4 model
 
-`docs/architecture/workspace.dsl` is a C4 model in the Structurizr DSL, with system context, container, component and deployment views. Each component is one Maven module, and its arrows follow the allowed dependency direction. Keep it in step with the code: when you add, rename or remove a module or adapter, update the model and validate it. Keep the model in that one file, without `!include`. `workspace.json` next to it holds the diagram layout from the Structurizr viewer; don't edit it by hand.
+`docs/architecture/workspace.dsl` is a C4 model in the Structurizr DSL, with system context, container, component and deployment views. Each component is one Maven module, and its arrows follow the allowed dependency direction. Keep it in step with the code: when you add, rename or remove a module or adapter, update the model and validate it. Keep the model in that one file, without `!include`. `workspace.json` next to it holds the diagram layout from the Structurizr viewer; don't edit it by hand. `docs/architecture/README.md` shows the views as Mermaid diagrams for GitHub: after changing the model, run `docs/architecture/export-diagrams.sh` (needs Docker or Podman) instead of editing the diagrams between its `<!-- diagram:… -->` markers.
 
 ## History
 
