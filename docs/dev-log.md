@@ -69,3 +69,20 @@
 - Velocity pitfalls: `#` and `$` in Java and Markdown are escaped (`${symbol_pound}`, `${symbol_dollar}`), otherwise `##` headings would become Velocity comments. `${org.mockito:mockito-core:jar}` in POMs is a Velocity parse error and is wrapped in `#[[...]]#`. Other POM properties like `${project.version}` pass through, because Velocity leaves undefined references alone.
 - The archetype jar drops `.gitignore`, so it is stored as `__gitignore__` with a `gitignore` property that defaults to `.gitignore`. Interactive generation therefore also asks to confirm that property.
 - Module names and class names are fixed, not parameters.
+
+## 2026-10-29 — c4-model
+
+**Goal:** Document the architecture as a C4 model in the Structurizr DSL, so the context, the single deployable and the ports-and-adapters structure inside it can be viewed as diagrams. The model lives with the code and is updated with it.
+
+**Steps**
+1. `docs/architecture/workspace.dsl`: system context, container, component and deployment (`Local`) views. People are the *Library client* (whatever calls the REST API) and the *Member* (who is notified about loans). There is one container, the Spring Boot application. Components are one per Maven module, grouped as inbound adapters, hexagon and outbound adapters, plus `bootstrap`; each carries its Maven coordinates and root package as properties. Checked with Structurizr's `validate`.
+2. `.gitignore` ignores `.structurizr/`, the viewer's logs and search index. `workspace.json`, which holds the diagram layout, is meant to be committed once it exists.
+3. `README.md` (Further reading) and `CLAUDE.md` (new `## C4 model` section, between `## Archetype` and `## History`) point to the model. `CLAUDE.md` asks for the model to be updated when a module or adapter changes.
+
+**Decisions / deviations**
+- Ports are components of their own rather than labels on relationships, because the point of the sample is the dependency direction between modules. Component arrows follow that direction: adapters point at ports, and `core` *implements* the inbound port rather than being called through it. As a consequence there is no dynamic view of a borrow: its runtime flow (REST → port → core) would need arrows against the dependency direction.
+- The in-memory store is not a container, because it lives in the application's heap. A real database adapter would add one.
+- `LoggingMemberNotifier` is drawn as notifying the *Member* through the application log, a placeholder for e-mail or SMS, rather than inventing an external mail system.
+- Everything is in one file, without `!include`, so the Structurizr MCP tools, which receive DSL text, can validate and export it.
+- `sync.sh` now drops every README line mentioning `docs/`, not just `docs/dev-log.md`, since generated projects have no `docs/`. The `## C4 model` section in `CLAUDE.md` sits after `## Archetype`, so `sync.sh` cuts it too. After re-running `sync.sh`, the only change to `archetype-resources` is `.structurizr/` in `__gitignore__`.
+- `workspace.json`, written by the viewer on first load, is committed. Every view still uses `autolayout` from the DSL, so it holds no hand-made layout yet. To keep a layout arranged in the viewer, remove `autolayout` from that view first.
