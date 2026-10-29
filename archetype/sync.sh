@@ -56,7 +56,7 @@ for file in $(git ls-files --cached --others --exclude-standard -- ':!archetype'
         README.md)
             # docs/ and archetype/ aren't part of the archetype. The section on starting a new project
             # runs up to Further reading.
-            filter_text "$file" '/docs\/dev-log\.md\|archetype\//d
+            filter_text "$file" '/docs\/\|archetype\//d
                 /^${symbol_pound}${symbol_pound} Starting a new project from this sample$/,/^${symbol_pound}${symbol_pound} Further reading$/{
                     /^${symbol_pound}${symbol_pound} Further reading$/!d
                 }' ;;

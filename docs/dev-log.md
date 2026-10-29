@@ -88,3 +88,20 @@
 - Flyway owns the schema and Hibernate only validates it (`ddl-auto=validate`, in the adapter tests too), so a mismatch between entities and migrations fails at startup and in the tests.
 - Follow-up the same day: the limit of active loans per member had no database guard. A new `ConcurrentBorrowingTest` in `bootstrap`, which starts 8 borrows by one member at once, showed all 8 being lent against a limit of 5. `MemberRepository` now has `findByIdForUpdate`, which `JpaMemberRepository` implements with a `PESSIMISTIC_WRITE` lock (`for no key update` in PostgreSQL), and `BorrowBookService` uses it. Concurrent borrows by one member now wait for each other, and each one counts the loans the others committed. The lock is explicit in the port and the use case, rather than hidden in `findActiveByMember`, because serialising a member's borrows is a decision of the use case. A count can't be expressed as a constraint, and a trigger would duplicate the limit that `LendingPolicy` owns. The same test checks that 8 members borrowing one copy at once get exactly 1 loan. The adapter test checks that a second lock on a locked member fails with NOWAIT; it fails without the lock.
 - `mvn clean verify` now needs Docker or Podman. On this machine Testcontainers uses Podman through `DOCKER_HOST`, which only works while `podman.socket` is running.
+
+## 2026-10-29 — c4-model
+
+**Goal:** Document the architecture as a C4 model in the Structurizr DSL, so the context, the single deployable and the ports-and-adapters structure inside it can be viewed as diagrams. The model lives with the code and is updated with it.
+
+**Steps**
+1. `docs/architecture/workspace.dsl`: system context, container, component and deployment (`Local`) views. People are the *Library client* (whatever calls the REST API) and the *Member* (who is notified about loans). There is one container, the Spring Boot application. Components are one per Maven module, grouped as inbound adapters, hexagon and outbound adapters, plus `bootstrap`; each carries its Maven coordinates and root package as properties. Checked with Structurizr's `validate`.
+2. `.gitignore` ignores `.structurizr/`, the viewer's logs and search index. `workspace.json`, which holds the diagram layout, is meant to be committed once it exists.
+3. `README.md` (Further reading) and `CLAUDE.md` (new `## C4 model` section, between `## Archetype` and `## History`) point to the model. `CLAUDE.md` asks for the model to be updated when a module or adapter changes.
+
+**Decisions / deviations**
+- Ports are components of their own rather than labels on relationships, because the point of the sample is the dependency direction between modules. Component arrows follow that direction: adapters point at ports, and `core` *implements* the inbound port rather than being called through it. As a consequence there is no dynamic view of a borrow: its runtime flow (REST → port → core) would need arrows against the dependency direction.
+- The in-memory store is not a container, because it lives in the application's heap. A real database adapter would add one.
+- `LoggingMemberNotifier` is drawn as notifying the *Member* through the application log, a placeholder for e-mail or SMS, rather than inventing an external mail system.
+- Everything is in one file, without `!include`, so the Structurizr MCP tools, which receive DSL text, can validate and export it.
+- `sync.sh` now drops every README line mentioning `docs/`, not just `docs/dev-log.md`, since generated projects have no `docs/`. The `## C4 model` section in `CLAUDE.md` sits after `## Archetype`, so `sync.sh` cuts it too. After re-running `sync.sh`, the only change to `archetype-resources` is `.structurizr/` in `__gitignore__`.
+- `workspace.json`, written by the viewer on first load, is committed. Every view still uses `autolayout` from the DSL, so it holds no hand-made layout yet. To keep a layout arranged in the viewer, remove `autolayout` from that view first.
