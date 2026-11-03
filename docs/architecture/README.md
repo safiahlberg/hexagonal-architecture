@@ -154,10 +154,10 @@ Each component is one Maven module, and each module has its own root package und
 
 The arrows between components show both what calls what and which way the compile-time dependencies may go. They all point inwards:
 
-- Adapters depend on ports, never the other way round, and the inbound and outbound sides never depend on each other.
-- `core` uses only the two ports. It *implements* the inbound port, so the REST adapter reaches it only through the use-case interfaces.
+- Adapters depend on ports, never the other way round. Adapters don't depend on each other, and the inbound and outbound sides never depend on each other.
+- `core` uses only `domain` and the two ports. It *implements* the inbound port, so the REST adapter reaches it only through the use-case interfaces.
 - `domain` depends on no other module.
-- `domain`, the ports and `core` can't use Spring. Spring is used only in the adapters and `bootstrap`.
+- `domain`, the ports and `core` can't use any framework. Spring is used only in the adapters and `bootstrap`.
 - `bootstrap` is the only module that sees everything.
 
 `maven-enforcer-plugin` checks these rules in Maven's `validate` phase, including transitive and test-scope dependencies, so a forbidden dependency fails the build. Run `mvn validate` to check them on their own.

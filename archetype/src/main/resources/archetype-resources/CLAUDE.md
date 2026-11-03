@@ -39,11 +39,9 @@ bootstrap/                     ${groupId}:bootstrap              pkg ${package}.
 ```
 
 Dependency direction is enforced by `maven-enforcer-plugin` `bannedDependencies` rules, which run in `validate` and include transitive and test-scope dependencies. A forbidden dependency fails the build, so don't work around a failure:
-- `inbound/pom.xml` and `outbound/pom.xml` ban the other side's groupId and `${groupId}:core`. Every module under a side inherits the rule; this is why each side has its own groupId.
-- Each port module also bans its own side's groupId, so a port can't depend on an adapter.
-- `core` may use only the two port modules, and no adapter.
-- `domain` may use no internal module.
-- `domain`, both ports and `core` also ban `org.springframework*`. Spring belongs only in adapters and `bootstrap`.
+- `inbound/pom.xml` and `outbound/pom.xml` ban the other side's groupId and `${groupId}:core`, and allow only the port from their own side, so adapters can't depend on each other. Every module under a side inherits the rule; this is why each side has its own groupId.
+- `domain`, both ports and `core` use allow-lists: they ban `*` and include only what they need, so a new framework is refused by default. `domain` allows no internal module, the ports allow `domain`, and `core` allows `domain` and the two ports. All of them also allow the test libraries (`org.junit*`, `org.opentest4j`, `org.apiguardian`, `org.jspecify`).
+- Spring belongs only in adapters and `bootstrap`. Outbound adapters may technically use it; that they currently don't is a convention, because a future adapter may have a reason to.
 - `bootstrap` is the composition root and the only module without a rule; it is meant to see everything.
 
 Conventions that keep these rules effective:

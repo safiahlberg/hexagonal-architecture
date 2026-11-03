@@ -32,7 +32,7 @@
 
     <build>
         <plugins>
-            <!-- The core may see both sides' ports, but never an adapter, and stays free of Spring. -->
+            <!-- The core may see the domain and both sides' ports, but never an adapter or a framework. -->
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -45,13 +45,16 @@
                             <rules>
                                 <bannedDependencies>
                                     <excludes>
-                                        <exclude>com.wixia.inbound</exclude>
-                                        <exclude>com.wixia.outbound</exclude>
-                                        <exclude>org.springframework*</exclude>
+                                        <exclude>*</exclude>
                                     </excludes>
                                     <includes>
+                                        <include>com.wixia:domain</include>
                                         <include>com.wixia.inbound:inbound-port</include>
                                         <include>com.wixia.outbound:outbound-port</include>
+                                        <include>org.junit*</include>
+                                        <include>org.opentest4j</include>
+                                        <include>org.apiguardian</include>
+                                        <include>org.jspecify</include>
                                     </includes>
                                 </bannedDependencies>
                             </rules>

@@ -97,9 +97,9 @@ Dependencies point inward: adapters depend on ports, `core` depends only on the 
 `maven-enforcer-plugin` checks these rules in the `validate` phase, including transitive and test-scope dependencies:
 
 - The inbound and outbound sides can't depend on each other or on `core`.
-- A port can't depend on an adapter.
-- `core` can use only the two port modules.
-- `domain`, the ports and `core` can't use Spring.
+- Adapters can't depend on each other, and a port can't depend on an adapter.
+- `core` can use only `domain` and the two port modules.
+- `domain`, the ports and `core` can't use any framework: they allow only what they list, plus the test libraries.
 
 Run `mvn validate` to check the rules on their own. A new adapter placed under `inbound/` or `outbound/` inherits its side's rules automatically.
 

@@ -22,7 +22,7 @@
 
     <build>
         <plugins>
-            <!-- A port is the application's contract: no adapter on its own side, and no Spring. -->
+            <!-- A port is the application's contract: only the domain, so no adapter and no framework. -->
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -35,9 +35,15 @@
                             <rules>
                                 <bannedDependencies>
                                     <excludes>
-                                        <exclude>${groupId}.inbound</exclude>
-                                        <exclude>org.springframework*</exclude>
+                                        <exclude>*</exclude>
                                     </excludes>
+                                    <includes>
+                                        <include>${groupId}:domain</include>
+                                        <include>org.junit*</include>
+                                        <include>org.opentest4j</include>
+                                        <include>org.apiguardian</include>
+                                        <include>org.jspecify</include>
+                                    </includes>
                                 </bannedDependencies>
                             </rules>
                         </configuration>
