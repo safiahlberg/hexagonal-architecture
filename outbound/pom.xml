@@ -21,7 +21,8 @@
 
     <build>
         <plugins>
-            <!-- Inherited by every outbound module: nothing on the outbound side may see the inbound side or the core. -->
+            <!-- Inherited by every outbound module: nothing on the outbound side may see the inbound side or the core,
+                 and of its own side only the port, so adapters can't depend on each other. -->
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -36,7 +37,11 @@
                                     <excludes>
                                         <exclude>com.wixia.inbound</exclude>
                                         <exclude>com.wixia:core</exclude>
+                                        <exclude>com.wixia.outbound</exclude>
                                     </excludes>
+                                    <includes>
+                                        <include>com.wixia.outbound:outbound-port</include>
+                                    </includes>
                                 </bannedDependencies>
                             </rules>
                         </configuration>

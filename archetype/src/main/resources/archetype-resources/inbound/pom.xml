@@ -20,7 +20,8 @@
 
     <build>
         <plugins>
-            <!-- Inherited by every inbound module: nothing on the inbound side may see the outbound side or the core. -->
+            <!-- Inherited by every inbound module: nothing on the inbound side may see the outbound side or the core,
+                 and of its own side only the port, so adapters can't depend on each other. -->
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -35,7 +36,11 @@
                                     <excludes>
                                         <exclude>${groupId}.outbound</exclude>
                                         <exclude>${groupId}:core</exclude>
+                                        <exclude>${groupId}.inbound</exclude>
                                     </excludes>
+                                    <includes>
+                                        <include>${groupId}.inbound:inbound-port</include>
+                                    </includes>
                                 </bannedDependencies>
                             </rules>
                         </configuration>

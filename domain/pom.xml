@@ -14,7 +14,7 @@
 
     <build>
         <plugins>
-            <!-- The domain is the centre: no other module of this project, and no Spring. -->
+            <!-- The domain is the centre: no other module of this project and no framework, only the test libraries. -->
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -27,11 +27,14 @@
                             <rules>
                                 <bannedDependencies>
                                     <excludes>
-                                        <exclude>com.wixia</exclude>
-                                        <exclude>com.wixia.inbound</exclude>
-                                        <exclude>com.wixia.outbound</exclude>
-                                        <exclude>org.springframework*</exclude>
+                                        <exclude>*</exclude>
                                     </excludes>
+                                    <includes>
+                                        <include>org.junit*</include>
+                                        <include>org.opentest4j</include>
+                                        <include>org.apiguardian</include>
+                                        <include>org.jspecify</include>
+                                    </includes>
                                 </bannedDependencies>
                             </rules>
                         </configuration>
