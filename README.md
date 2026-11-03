@@ -101,6 +101,8 @@ Dependencies point inward: adapters depend on ports, `core` depends only on the 
 
 Run `mvn validate` to check the rules on their own. A new adapter placed under `inbound/` or `outbound/` inherits its side's rules automatically.
 
+The enforcer can't see which methods a module calls, so `ArchitectureTest` in `bootstrap` adds two [ArchUnit](https://www.archunit.org) rules: only `core` can return a loan with `Loan.giveBack`, and only outbound adapters can rebuild one with `Loan.restore`.
+
 `core` and the outbound adapters have no Spring annotations; `bootstrap` wires them with explicit `@Bean` methods in `LendingConfiguration`, and runs each use case in a transaction there. Replacing an adapter means writing a new module under `outbound/` and changing its beans.
 
 ## Starting a new project from this sample

@@ -123,3 +123,21 @@
 - The step-by-step borrow is prose, not a dynamic view, for the reason given in `c4-model`: its runtime flow runs against the arrows of the dependency direction.
 - Not verified: how GitHub actually renders the diagrams. Check after the first push.
 - Follow-up the same day: the page's closing section on regenerating the diagrams and browsing the model in Structurizr (with its Podman flags) was removed. Tooling doesn't belong in an architecture description. How to regenerate is in the script's header and in `CLAUDE.md`, and an HTML comment at the top of the page, not shown on GitHub, points editors to the script.
+
+## 2026-11-03 — architecture-rules
+
+**Goal:** Make the build enforce what the docs say about the structure. A review showed that `mvn validate` accepted `domain` → `jakarta.persistence-api`, `core` → `hibernate-core`, `inbound-port` → `jackson-databind` and one outbound adapter depending on another. And no check could see an adapter calling domain operations it has no business calling, because the enforcer only sees dependencies between modules.
+
+**Steps**
+1. Enforcer: `domain`, both ports and `core` changed from banning named groups to allow-lists (`*` banned, needed modules and test libraries included). `inbound/pom.xml` and `outbound/pom.xml` now also ban their own groupId except the port, so adapters can't depend on each other. Checked in a scratch copy that each of the dependencies above now fails `mvn validate`, as do `outbound-port` → `spring-boot-starter` and `adapter-rest` → `core`.
+2. ArchUnit 1.5.1 in `bootstrap`, the only module that sees every class. `ArchitectureTest` has two rules: only `core` may call `Loan.giveBack`, and only outbound adapters may call `Loan.restore`. Checked in a scratch copy that both fail with the offending line when `LendingController` makes the call.
+3. `CLAUDE.md`, `README.md` and `docs/architecture/README.md` describe the new rules; `sync.sh` regenerated the archetype.
+
+**Decisions / deviations**
+- Allow-lists rather than more bans, so a framework nobody thought of is refused too. The cost is that the four test-library entries are repeated in four POMs, and a new test library in these modules needs adding to each.
+- Spring in outbound adapters stays allowed. Nothing uses it today, but a future adapter may have a good reason, such as a Spring messaging client, and adapters are where Spring is meant to be.
+- The plain `archunit` library in a normal JUnit test rather than `archunit-junit5`, so ArchUnit's JUnit engine doesn't have to be compatible with JUnit 6.
+- The `Loan.restore` rule allows all of `outbound`, not just `outbound.persistence`, so replacing the persistence adapter needs no change to the test. The notification adapter could therefore call it too; that isn't worth a narrower rule.
+- `ArchitectureTest` excludes its own test-classes directory rather than using ArchUnit's `DoNotIncludeTests`. That option matches `target/test-classes` anywhere in a path, and the archetype's integration test builds the generated project under `archetype/target/test-classes`, so it excluded every class there. ArchUnit reported that the rules had checked no classes, instead of passing.
+- `Loan` stays the return type of the inbound ports. A read-only view would stop these calls at compile time, but needs mapping that a sample doesn't justify.
+- `workspace.dsl` is unchanged: no module or allowed dependency between existing modules changed.

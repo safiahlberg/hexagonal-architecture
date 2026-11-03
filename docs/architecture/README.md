@@ -162,6 +162,8 @@ The arrows between components show both what calls what and which way the compil
 
 `maven-enforcer-plugin` checks these rules in Maven's `validate` phase, including transitive and test-scope dependencies, so a forbidden dependency fails the build. Run `mvn validate` to check them on their own.
 
+The adapters need the domain's types, so a module rule can't stop them from calling its operations. `ArchitectureTest` in `bootstrap` checks those calls with ArchUnit: only `core` may return a loan, and only outbound adapters may rebuild a stored one with `Loan.restore`, which applies no lending rules.
+
 ### How a borrow goes through the components
 
 1. The **REST adapter** receives `POST /loans`, checks that `memberId` and `copyId` are present, and calls `BorrowBookUseCase`.

@@ -27,6 +27,7 @@
     <spring-boot.version>4.1.1</spring-boot.version>
     <!-- Kept in line with the JUnit version that Spring Boot is built against. -->
     <junit.version>6.0.3</junit.version>
+    <archunit.version>1.5.1</archunit.version>
   </properties>
 
   <dependencyManagement>
@@ -45,6 +46,11 @@
         <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit</artifactId>
+        <version>${archunit.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

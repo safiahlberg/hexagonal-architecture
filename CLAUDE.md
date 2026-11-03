@@ -42,6 +42,8 @@ Dependency direction is enforced by `maven-enforcer-plugin` `bannedDependencies`
 - Spring belongs only in adapters and `bootstrap`. Outbound adapters may technically use it; that they currently don't is a convention, because a future adapter may have a reason to.
 - `bootstrap` is the composition root and the only module without a rule; it is meant to see everything.
 
+The enforcer sees only dependencies between modules, not which methods are called. `ArchitectureTest` in `bootstrap` uses ArchUnit for what it can't see: only `core` may call `Loan.giveBack`, and only outbound adapters may call `Loan.restore`. It uses the plain `archunit` library in a normal JUnit test, not ArchUnit's JUnit engine.
+
 Conventions that keep these rules effective:
 - Parent POMs (`inbound/`, `outbound/`) carry rules only. Every module declares its own dependencies explicitly, with `${project.version}` for internal ones, rather than inheriting them.
 - A new adapter goes under `inbound/` or `outbound/` so it inherits that side's rules.
