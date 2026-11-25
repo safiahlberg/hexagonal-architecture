@@ -38,6 +38,8 @@ outbound/adapter-notification/ ...:adapter-notification         pkg ${package}.o
 bootstrap/                     ${groupId}:bootstrap              pkg ${package}.bootstrap
 ```
 
+The many small modules are deliberate: the structure favours making the architecture easy to enforce over being easy to navigate. Don't merge modules or move code between them to simplify the layout.
+
 Dependency direction is enforced by `maven-enforcer-plugin` `bannedDependencies` rules, which run in `validate` and include transitive and test-scope dependencies. A forbidden dependency fails the build, so don't work around a failure:
 - `inbound/pom.xml` and `outbound/pom.xml` ban the other side's groupId and `${groupId}:core`, and allow only the port from their own side, so adapters can't depend on each other. Every module under a side inherits the rule; this is why each side has its own groupId.
 - `domain`, both ports and `core` use allow-lists: they ban `*` and include only what they need, so a new framework is refused by default. `domain` allows no internal module, the ports allow `domain`, and `core` allows `domain` and the two ports. All of them also allow the test libraries (`org.junit*`, `org.opentest4j`, `org.apiguardian`, `org.jspecify`).

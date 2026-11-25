@@ -6,6 +6,14 @@ A small library-lending service built with the hexagonal (ports and adapters) ar
 
 It runs as a Spring Boot 4 app, but Spring stays in the outer modules. The domain, the ports and the use cases are plain Java, and the build fails if any module depends on something it shouldn't.
 
+${symbol_pound}${symbol_pound} Design intentions
+
+Why this directory and module structure? It may not be the easiest way to organize and view a project with hexagonal architecture. 
+
+The reason is that one design goal is to make adherence to the architecture easier to enforce. For example, a direct dependency between inbound and outbound adapters can't be created by mistake: the build fails, and the only way around it is to deliberately change or skip a rule.
+
+The isolation comes from the structure: each part is its own Maven module and sees only the modules it declares as dependencies. `maven-enforcer-plugin` rules restrict which dependencies a module may declare, and ArchUnit tests restrict some calls that module boundaries can't, such as who may return a loan.
+
 ${symbol_pound}${symbol_pound} Requirements
 
 - JDK 27
